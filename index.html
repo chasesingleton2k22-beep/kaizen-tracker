@@ -1,0 +1,3338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TAG Kaizen Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="alternate icon" type="image/x-icon" href="icon.ico">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#1a2744">
+<meta name="application-name" content="TAG Kaizen Tracker">
+<meta name="msapplication-TileColor" content="#1a2744">
+<meta name="msapplication-config" content="none">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TAG Kaizen">
+<style>
+:root{
+  --navy:#1a2744;--navy-light:#243358;--gold:#d4a017;--gold-light:#f0c040;
+  --white:#ffffff;--gray-100:#f5f5f5;--gray-200:#e0e0e0;--gray-400:#9e9e9e;
+  --gray-600:#616161;--gray-800:#212121;
+  --green:#2e7d32;--green-bg:#e8f5e9;--green-border:#81c784;
+  --yellow:#e65100;--yellow-bg:#fff8e1;--yellow-border:#ffb300;
+  --red:#c62828;--red-bg:#ffebee;--red-border:#ef9a9a;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 2px 8px rgba(0,0,0,.12);--shadow-lg:0 4px 20px rgba(0,0,0,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--gray-100);color:var(--gray-800);min-height:100vh;}
+
+/* Header */
+.hdr{background:var(--navy);color:#fff;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-lg);}
+.hdr-in{display:flex;align-items:center;gap:12px;padding:12px 16px;max-width:900px;margin:0 auto;}
+.hdr-logo{width:44px;height:44px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;color:var(--navy);flex-shrink:0;letter-spacing:-.5px;}
+.hdr-text{flex:1;min-width:0;}
+.hdr-text h1{font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-text p{font-size:11px;opacity:.65;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-brand{text-align:right;flex-shrink:0;line-height:1.2;}
+.hdr-brand-main{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.3px;white-space:nowrap;}
+.hdr-brand-sub{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;white-space:nowrap;}
+@media(max-width:420px){.hdr-brand{display:none;}}
+.hdr-acts{display:flex;gap:6px;}
+.btn-ico{background:rgba(255,255,255,.15);border:none;color:#fff;width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;transition:.15s;}
+.btn-ico:active{background:rgba(255,255,255,.3);}
+.back-btn{position:absolute;top:16px;left:16px;background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 14px;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s;}
+.back-btn:active{background:rgba(255,255,255,.3);}
+
+/* Content */
+.content{max-width:900px;margin:0 auto;padding:16px;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:var(--radius-sm);border:none;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;min-height:48px;white-space:nowrap;text-decoration:none;}
+.btn:active{opacity:.8;}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-outline{background:transparent;border:2px solid var(--navy);color:var(--navy);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-ghost{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;}
+.btn-sm{padding:8px 14px;font-size:13px;min-height:38px;}
+.btn-full{width:100%;}
+
+/* Cards */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;}
+.card-body{padding:16px;}
+
+/* Forms */
+.fg{margin-bottom:14px;}
+.lbl{display:block;font-size:12px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.ctrl{width:100%;padding:12px 14px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:15px;color:var(--gray-800);transition:.15s;background:#fff;-webkit-appearance:none;appearance:none;}
+.ctrl:focus{outline:none;border-color:var(--navy);}
+textarea.ctrl{resize:vertical;}
+
+/* Progress */
+.prog-wrap{background:var(--gray-200);border-radius:100px;height:10px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width .5s ease;}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;}
+.b-active{background:#e3f2fd;color:#1565c0;}
+.b-sustain{background:#fff3e0;color:#e65100;}
+.b-complete{background:#e8f5e9;color:#2e7d32;}
+.b-archived{background:var(--gray-200);color:var(--gray-600);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;}
+@media(max-width:380px){.stats{grid-template-columns:repeat(2,1fr);}}
+.stat{background:#fff;border-radius:var(--radius-sm);padding:12px 8px;text-align:center;box-shadow:var(--shadow);}
+.stat-n{font-size:26px;font-weight:900;color:var(--navy);line-height:1;}
+.stat-l{font-size:10px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+
+/* Tabs */
+.tabs{display:flex;background:#fff;border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:14px;box-shadow:var(--shadow);}
+.tab{flex:1;padding:9px 4px;border:none;border-radius:6px;background:transparent;font-size:11px;font-weight:700;color:var(--gray-600);cursor:pointer;transition:.15s;text-align:center;line-height:1.2;}
+.tab.on{background:var(--navy);color:#fff;}
+
+/* Chips — owner filter */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{padding:6px 13px;border-radius:100px;border:2px solid var(--gray-200);background:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+/* Category multi-select chips */
+.cat-chips{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0;}
+.cat-chip{padding:8px 14px;border-radius:100px;border:2px solid var(--gray-200);background:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;user-select:none;}
+.cat-chip.on{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+
+/* KPI rows */
+.kpi-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.kpi-row-left{flex:2;min-width:0;}
+.kpi-row-right{flex:1;min-width:0;}
+.kpi-row-x{flex-shrink:0;width:32px;height:32px;border-radius:6px;background:none;border:2px solid var(--red);color:var(--red);font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;margin-top:2px;}
+.kpi-row-x:active{background:var(--red);color:#fff;}
+@media(max-width:400px){.kpi-row{flex-wrap:wrap;}.kpi-row-left,.kpi-row-right{flex:1 1 100%;}}
+/* Auto-grow textareas — override the default resize handle */
+textarea.ctrl-grow{resize:none;overflow:hidden;}
+
+/* A3 section */
+.a3-zone{background:var(--gray-100);border:2px dashed var(--gray-400);border-radius:var(--radius-sm);padding:16px;text-align:center;}
+.a3-zone.has-file{background:#fff;border-style:solid;border-color:var(--navy);}
+.a3-preview{display:flex;align-items:center;gap:12px;text-align:left;}
+.a3-icon{width:52px;height:52px;background:var(--navy);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+
+/* Action item cards */
+.ai{border-radius:var(--radius-sm);border:2px solid var(--gray-200);padding:14px;margin-bottom:10px;background:#fff;cursor:pointer;transition:.15s;}
+.ai:active{opacity:.85;}
+.ai.g{border-color:var(--green-border);background:var(--green-bg);}
+.ai.y{border-color:var(--yellow-border);background:var(--yellow-bg);}
+.ai.r{border-color:var(--red-border);background:var(--red-bg);}
+.ai.x{border-color:var(--gray-400);background:var(--gray-100);}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-g{background:var(--green);}
+.dot-y{background:var(--yellow-border);}
+.dot-r{background:var(--red);}
+.dot-x{background:var(--gray-400);}
+
+/* Event list */
+.eli{background:#fff;border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;transition:.15s;display:flex;align-items:flex-start;gap:12px;}
+.eli:active{opacity:.85;}
+.eli-bar{width:4px;border-radius:4px;align-self:stretch;flex-shrink:0;}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-end;}
+@media(min-width:600px){.overlay{align-items:center;padding:20px;}}
+.modal{background:#fff;border-radius:var(--radius) var(--radius) 0 0;width:100%;max-height:93vh;overflow-y:auto;animation:slideUp .25s ease;}
+@media(min-width:600px){.modal{max-width:580px;margin:0 auto;border-radius:var(--radius);max-height:88vh;}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-hdr{background:var(--navy);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1;}
+.modal-title{font-size:17px;font-weight:800;}
+.modal-x{background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:7px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.modal-body{padding:18px;}
+
+/* Draft banner */
+.draft-banner{background:#fff8e1;border:2px solid var(--yellow-border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:100px;font-size:14px;font-weight:700;z-index:9999;box-shadow:var(--shadow-lg);white-space:nowrap;pointer-events:none;transition:opacity .3s;}
+
+/* PIN */
+.pin-dots{display:flex;gap:16px;justify-content:center;margin:20px 0;width:fit-content;margin-left:auto;margin-right:auto;}
+.pin-dot{width:20px;height:20px;border-radius:50%;border:3px solid var(--navy);transition:.15s;}
+.pin-dot.on{background:var(--navy);}
+.code-input::placeholder{font-size:12px;letter-spacing:0;font-weight:600;text-transform:none;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:280px;margin:0 auto;}
+.pin-key{aspect-ratio:1;background:var(--gray-100);border:2px solid var(--gray-200);border-radius:var(--radius-sm);font-size:22px;font-weight:800;color:var(--navy);cursor:pointer;transition:.1s;display:flex;align-items:center;justify-content:center;}
+.pin-key:active{background:var(--navy);color:#fff;}
+
+/* Landing */
+@keyframes logoFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+.land{min-height:100vh;background:radial-gradient(ellipse 80% 50% at 50% 20%,rgba(212,160,23,.08) 0%,transparent 65%),var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;}
+.land-logo{width:88px;height:88px;background:var(--gold);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--navy);margin:0 auto 20px;box-shadow:0 8px 32px rgba(212,160,23,.4);animation:logoFloat 3s ease-in-out infinite;}
+.land h1{color:#fff;font-size:26px;font-weight:900;margin-bottom:6px;}
+.land-sub{color:rgba(255,255,255,.6);font-size:14px;margin-bottom:28px;}
+.land-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius);padding:22px;width:100%;max-width:360px;}
+
+/* Ended */
+.ended{min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;color:#fff;}
+
+/* Section header */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:13px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.8px;}
+
+/* Due week banner */
+.due-week{background:var(--yellow-bg);border:2px solid var(--yellow-border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;}
+.due-week-title{font-size:12px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.due-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.07);cursor:pointer;}
+.due-row:last-child{border-bottom:none;}
+
+/* Photos */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-bottom:10px;}
+.photo-thumb{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:pointer;}
+.photo-drop{border:2px dashed var(--gray-400);border-radius:var(--radius-sm);padding:20px;text-align:center;cursor:pointer;color:var(--gray-600);font-size:14px;font-weight:600;}
+
+/* Read-only field */
+.ro-field{background:var(--gray-100);border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--gray-800);}
+
+/* Participant notice */
+.perm-notice{background:#e3f2fd;border:1px solid #90caf9;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#1565c0;font-weight:600;margin-bottom:12px;}
+
+/* Utility */
+.flex{display:flex;}.aic{align-items:center;}.jb{justify-content:space-between;}.g2{gap:8px;}.g3{gap:12px;}
+.mt1{margin-top:4px;}.mt2{margin-top:8px;}.mt3{margin-top:12px;}.mt4{margin-top:16px;}
+.mb1{margin-bottom:4px;}.mb2{margin-bottom:8px;}.mb3{margin-bottom:12px;}.mb4{margin-bottom:16px;}
+.txt-sm{font-size:13px;}.txt-xs{font-size:11px;}.txt-muted{color:var(--gray-600);}.bold{font-weight:700;}
+.hidden{display:none!important;}
+.divider{border:none;border-top:1px solid var(--gray-200);margin:12px 0;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── Opportunities & Voting ── */
+.opp-row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--gray-200);}
+.opp-row:last-child{border-bottom:none;}
+.opp-num{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.opp-desc{flex:1;font-size:14px;font-weight:600;color:var(--gray-800);line-height:1.4;word-break:break-word;}
+.opp-del{background:none;border:none;color:var(--gray-400);font-size:18px;cursor:pointer;padding:0 4px;flex-shrink:0;line-height:1;}
+.opp-del:active{color:var(--red);}
+.vote-card{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.vote-btns{display:flex;gap:8px;}
+.vote-btn{flex:1;min-height:54px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:20px;font-weight:900;color:var(--navy);cursor:pointer;transition:.12s;display:flex;align-items:center;justify-content:center;}
+.vote-btn.sel{background:var(--navy);color:#fff;border-color:var(--navy);}
+.vote-btn:active{opacity:.75;}
+.rank-row{display:flex;align-items:center;gap:10px;padding:12px;background:#fff;border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow);}
+.rank-num{width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rank-num.gold{background:var(--gold);color:var(--navy);}
+.rank-num.silver{background:#9e9e9e;}
+.rank-num.bronze{background:#8d6e63;}
+.rank-score{background:var(--gold);color:var(--navy);font-size:12px;font-weight:800;padding:3px 10px;border-radius:100px;flex-shrink:0;white-space:nowrap;}
+.rank-bar-wrap{width:56px;background:var(--gray-200);border-radius:100px;height:6px;overflow:hidden;flex-shrink:0;}
+.rank-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;}
+.voter-pill{background:#e3f2fd;color:#1565c0;border-radius:100px;font-size:12px;font-weight:800;padding:4px 12px;display:inline-block;}
+.vote-desc{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:10px;word-break:break-word;line-height:1.4;}
+.live-vote-panel{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.live-vote-hdr{background:var(--navy);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.live-vote-title{color:var(--gold);font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.live-vote-body{padding:14px 16px;}
+.live-badge{display:inline-flex;align-items:center;gap:3px;background:var(--red);color:#fff;font-size:10px;font-weight:900;padding:3px 8px;border-radius:100px;letter-spacing:.5px;animation:livePulse 2s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;}50%{opacity:.6;}}
+.opp-live-row{padding:10px 0;border-bottom:1px solid var(--gray-200);}
+.opp-live-row:last-child{border-bottom:none;}
+.opp-live-bar{height:6px;background:var(--gray-200);border-radius:100px;overflow:hidden;}
+.opp-live-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width .4s ease;}
+.sup-banner{background:#fff8e1;border:2px solid var(--gold);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:.15s;}
+/* Participant voted/live screen */
+.p-live-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.p-live-dot.active{background:#4caf50;animation:livePulse 2s infinite;}
+.p-live-dot.closed{background:rgba(255,255,255,.4);}
+.p-rank-bar-wrap{flex:1;background:var(--gray-200);border-radius:100px;height:6px;overflow:hidden;max-width:100px;}
+.p-rank-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:100px;transition:width .5s ease;}
+.p-assigned-card{background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:4px;margin-bottom:8px;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.p-fade-in{animation:fadeInUp .35s ease both;}
+.sup-banner:active{opacity:.8;}
+.sup-banner-pulse{animation:supPulse 2s infinite;}
+@keyframes supPulse{0%,100%{border-color:var(--gold);}50%{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(212,160,23,.2);}}
+
+/* ── Polish & micro-interactions ── */
+
+/* Screen transitions */
+@keyframes pageEnter{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+.page-enter{animation:pageEnter .18s cubic-bezier(.4,0,.2,1) both;}
+
+/* Input focus glow */
+.ctrl:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,39,68,.1);}
+
+/* Button press scale */
+.btn{transition:.15s;transform:scale(1);}
+.btn:active{opacity:.8;transform:scale(.96);}
+.btn-ico{transition:.15s;transform:scale(1);}
+.btn-ico:active{background:rgba(255,255,255,.3);transform:scale(.9);}
+.chip:active{transform:scale(.95);}
+.pin-key:active{background:var(--navy);color:#fff;transform:scale(.92);}
+
+/* Card hover lift */
+.ai:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.eli:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.1);}
+
+/* Progress bar grow on entry */
+@keyframes growBar{from{width:0;}}
+.prog-fill{animation:growBar .75s cubic-bezier(.4,0,.2,1);}
+
+/* Vote button selection spring */
+@keyframes votePop{0%{transform:scale(.82);}60%{transform:scale(1.08);}100%{transform:scale(1);}}
+.vote-btn.sel{animation:votePop .22s cubic-bezier(.34,1.56,.64,1);}
+
+/* Toast slide-up */
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(14px);}}
+.toast{animation:toastIn .22s cubic-bezier(.4,0,.2,1);}
+
+/* Modal backdrop blur */
+.overlay{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+
+/* Thin modal scrollbar */
+.modal::-webkit-scrollbar{width:3px;}
+.modal::-webkit-scrollbar-track{background:transparent;}
+.modal::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:100px;}
+
+/* Logo gradient */
+.hdr-logo,.land-logo{background:linear-gradient(145deg,var(--gold),var(--gold-light));}
+
+/* Rank row hover */
+.rank-row{transition:.12s;}
+.rank-row:hover{background:var(--gray-100);}
+
+/* Participant tag pop-in */
+@keyframes tagPop{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+
+/* ── Assign workflow ── */
+.assign-btn{padding:5px 13px;border-radius:100px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-size:12px;font-weight:800;cursor:pointer;transition:.12s;white-space:nowrap;flex-shrink:0;min-height:0;line-height:1;}
+.assign-btn:active{background:var(--navy);color:#fff;transform:scale(.95);}
+.assigned-check{display:inline-flex;align-items:center;gap:4px;background:var(--green-bg);border:2px solid var(--green-border);color:var(--green);font-size:12px;font-weight:800;padding:5px 13px;border-radius:100px;flex-shrink:0;white-space:nowrap;}
+@keyframes checkIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.assigned-check{animation:checkIn .25s ease;}
+.assigned-group{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.unassign-btn{background:none;border:none;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;white-space:nowrap;}
+.unassign-btn:hover{opacity:.7;}
+.unassign-btn:active{opacity:.4;}
+/* Inline panel slide */
+.op-panel-wrap{overflow:hidden;max-height:0;transition:max-height .22s cubic-bezier(.4,0,.2,1);}
+.op-panel-wrap.open{max-height:1000px;}
+.op-panel{background:#f8f9fc;border:2px solid var(--navy);border-radius:var(--radius-sm);padding:16px;margin-top:10px;margin-bottom:4px;}
+/* Tap-select controls (panels + modals) */
+.tap-row{display:flex;gap:8px;}
+.tap-opt{flex:1;padding:11px 8px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);background:#fff;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer;transition:.12s;text-align:center;user-select:none;min-height:44px;display:flex;align-items:center;justify-content:center;}
+.tap-opt.sel{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+.tap-opt:active{opacity:.8;transform:scale(.97);}
+.owner-chips{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0;}
+.owner-chip{padding:8px 14px;border-radius:100px;border:2px solid var(--gray-200);background:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:.12s;user-select:none;white-space:nowrap;}
+.owner-chip.sel{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+.owner-chip:active{transform:scale(.95);}
+/* From Opportunity tag on action item card */
+.from-opp-tag{display:inline-flex;align-items:center;gap:3px;background:#e3f2fd;color:#1565c0;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;margin-top:5px;}
+/* Inline validation error */
+.val-err{color:var(--red);font-size:12px;font-weight:700;margin-top:5px;display:none;}
+.val-err.show{display:block;}
+/* Participant live-update */
+.p-new-banner{background:var(--green-bg);border:2px solid var(--green-border);color:var(--green);font-size:13px;font-weight:700;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:10px;text-align:center;transition:opacity .4s;}
+.p-new-banner.hidden{display:none!important;}
+.p-refresh-btn{background:none;border:none;color:var(--navy);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:.15s;line-height:1;opacity:.7;}
+.p-refresh-btn:hover{opacity:1;background:var(--gray-200);}
+.p-refresh-btn:active{background:var(--gray-200);}
+@keyframes spinIcon{to{transform:rotate(360deg);}}
+.p-refresh-btn.spinning{animation:spinIcon .55s linear;}
+.btn-ico.spinning{animation:spinIcon .55s linear;}
+/* Participant live screen */
+.p-empty-state{text-align:center;padding:32px 16px;color:var(--gray-400);}
+.p-empty-icon{font-size:36px;margin-bottom:10px;}
+@keyframes emptyPulse{0%,100%{opacity:.45;}50%{opacity:1;}}
+.p-empty-text{font-size:14px;font-weight:600;animation:emptyPulse 2.5s ease-in-out infinite;}
+.p-op-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-200);}
+.p-op-row:last-child{border-bottom:none;}
+.p-gold-check{color:var(--gold);font-size:18px;font-weight:900;flex-shrink:0;}
+.p-op-assigned-tag{font-size:11px;color:var(--green);font-weight:700;margin-top:3px;}
+.p-ai-row{background:#fff;border-radius:var(--radius-sm);border:2px solid var(--gray-200);padding:12px;margin-bottom:8px;cursor:pointer;transition:.15s;}
+.p-ai-row.mine{border-color:var(--gold);}
+.p-ai-row.other{opacity:.65;}
+.p-ai-row:active{opacity:.8;}
+.p-your-item-tag{background:var(--gold);color:var(--navy);font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;margin-left:8px;flex-shrink:0;white-space:nowrap;}
+
+/* ── New pass-the-tablet voting ── */
+@keyframes voteFade{from{opacity:0;}to{opacity:1;}}
+.vfs{position:fixed;inset:0;background:var(--navy);z-index:200;overflow-y:auto;animation:voteFade .2s ease;}
+.vfs-inner{display:flex;flex-direction:column;align-items:stretch;min-height:100vh;padding:24px 20px 48px;max-width:560px;margin:0 auto;}
+.vfs-event{font-size:13px;color:rgba(255,255,255,.55);text-align:center;font-weight:600;margin-bottom:4px;}
+.vfs-voter{font-size:16px;color:var(--gold);text-align:center;font-weight:900;margin-bottom:16px;letter-spacing:.5px;text-transform:uppercase;}
+.vfs-prog{height:4px;background:rgba(255,255,255,.15);border-radius:100px;margin-bottom:22px;overflow:hidden;}
+.vfs-prog-fill{height:100%;background:var(--gold);border-radius:100px;transition:width .3s ease;}
+.vfs-opp-count{font-size:18px;color:rgba(255,255,255,.7);text-align:center;font-weight:800;margin-bottom:10px;}
+.vfs-opp-text{font-size:26px;color:#fff;text-align:center;font-weight:900;line-height:1.25;margin-bottom:16px;word-break:break-word;}
+.vfs-num-row{display:flex;gap:10px;margin-bottom:28px;}
+.vfs-num-btn{flex:1;aspect-ratio:1;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);border-radius:14px;color:#fff;font-size:30px;font-weight:900;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;}
+@keyframes vfsBtnPop{0%{transform:scale(.78);}55%{transform:scale(1.15);}75%{transform:scale(.95);}100%{transform:scale(1);}}
+.vfs-num-btn.sel{background:var(--gold);color:var(--navy);border-color:var(--gold);animation:vfsBtnPop .28s cubic-bezier(.34,1.56,.64,1) both;}
+.vfs-num-btn:active{opacity:.75;}
+.vfs-hint{font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-bottom:20px;letter-spacing:.8px;font-weight:600;text-transform:uppercase;}
+.vfs-submit{width:100%;padding:20px;border:none;border-radius:14px;font-size:19px;font-weight:900;cursor:pointer;transition:.15s;min-height:64px;}
+@keyframes vfsReadyGlow{0%,100%{box-shadow:0 0 0 0 rgba(212,160,23,.5);}50%{box-shadow:0 0 0 10px rgba(212,160,23,0);}}
+.vfs-submit.ready{background:var(--gold);color:var(--navy);animation:vfsReadyGlow 2s ease-in-out infinite;}
+.vfs-submit.disabled{background:rgba(255,255,255,.15);color:rgba(255,255,255,.4);pointer-events:none;}
+@keyframes vfcCheckBounce{0%{transform:scale(0);opacity:0;}55%{transform:scale(1.2);opacity:1;}75%{transform:scale(.92);}100%{transform:scale(1);}}
+.vfc-check{font-size:90px;text-align:center;margin:40px 0 20px;display:block;animation:vfcCheckBounce .55s cubic-bezier(.34,1.56,.64,1) both;}
+.vfc-title{font-size:30px;font-weight:900;color:#fff;text-align:center;margin-bottom:8px;}
+.vfc-sub{font-size:16px;color:rgba(255,255,255,.65);text-align:center;margin-bottom:48px;}
+.vfc-btn-next{width:100%;padding:20px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-size:19px;font-weight:900;cursor:pointer;margin-bottom:12px;min-height:64px;transition:.15s;}
+.vfc-btn-done{width:100%;padding:20px;background:transparent;color:#fff;border:2px solid rgba(255,255,255,.4);border-radius:14px;font-size:17px;font-weight:700;cursor:pointer;min-height:64px;transition:.15s;}
+.vfc-btn-next:active,.vfc-btn-done:active{opacity:.8;}
+.vfh-complete{font-size:24px;color:#fff;font-weight:900;text-align:center;margin:60px 0 48px;line-height:1.3;}
+.vfr-title{font-size:28px;font-weight:900;color:var(--gold);text-align:center;margin:24px 0 24px;}
+@keyframes vfrRowIn{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+.vfr-row{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:10px;animation:vfrRowIn .3s ease both;}
+@keyframes votingBtnPulse{0%,100%{box-shadow:0 4px 15px rgba(212,160,23,.3);}50%{box-shadow:0 4px 28px rgba(212,160,23,.65),0 0 0 6px rgba(212,160,23,.12);}}
+.btn-start-voting{animation:votingBtnPulse 2.2s ease-in-out infinite;}
+.vfr-rank{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vfr-rank.gold{background:var(--gold);color:var(--navy);}
+.vfr-rank.silver{background:#bdbdbd;color:#212121;}
+.vfr-rank.bronze{background:#a1887f;color:#fff;}
+.vfr-desc{flex:1;font-size:17px;font-weight:700;color:#fff;line-height:1.3;word-break:break-word;}
+.vfr-score{font-size:15px;font-weight:800;color:var(--gold);flex-shrink:0;white-space:nowrap;text-align:right;}
+.vfr-back{width:100%;padding:20px;background:var(--gold);color:var(--navy);border:none;border-radius:14px;font-size:19px;font-weight:900;cursor:pointer;margin-top:28px;min-height:64px;transition:.15s;}
+.vfr-back:active{opacity:.8;}
+.vfs-escape-zone{position:absolute;top:0;left:0;width:72px;height:72px;z-index:210;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const CFG = { pins: { Chase: '2610', Robert: '7744' } };
+const CATS = ['Safety','Quality','Cost','Delivery','People','5S'];
+const DRAFT_KEY = 'kz_draft';
+
+// ═══════════════════════════════════════════════════════════
+// DATABASE — localStorage demo
+// Firebase swap: replace each method with firebase get/set/update
+// ═══════════════════════════════════════════════════════════
+const DB = {
+  _r(k){try{return JSON.parse(localStorage.getItem(k))||null;}catch{return null;}},
+  _w(k,v){localStorage.setItem(k,JSON.stringify(v));},
+  getEvents(){return this._r('kz_events')||{};},
+  getEvent(c){return(this.getEvents())[c]||null;},
+  saveEvent(ev){const e=this.getEvents();e[ev.code]=ev;this._w('kz_events',e);},
+  getItems(c){return this._r('kz_i_'+c)||[];},
+  saveItems(c,items){this._w('kz_i_'+c,items);},
+  addItem(c,item){
+    const items=this.getItems(c);
+    item.id='i'+Date.now()+Math.random().toString(36).slice(2,6);
+    item.createdAt=new Date().toISOString();
+    items.push(item);this.saveItems(c,items);return item;
+  },
+  updateItem(c,id,patch){
+    const items=this.getItems(c);
+    const i=items.findIndex(x=>x.id===id);
+    if(i>-1){items[i]={...items[i],...patch,updatedAt:new Date().toISOString()};this.saveItems(c,items);return items[i];}
+    return null;
+  },
+  deleteItem(c,id){this.saveItems(c,this.getItems(c).filter(x=>x.id!==id));},
+  getVotes(c){return this._r('kz_v_'+c)||{voters:[],scores:{}};},
+  saveVotes(c,v){this._w('kz_v_'+c,v);},
+  getVotes2(c){return this._r('kz_votes2_'+c)||[];},
+  saveVotes2(c,v){this._w('kz_votes2_'+c,v);}
+};
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  user: null,          // {name, role:'admin'}
+  eventCode: null,
+  ownerFilter: null,
+  dashTab: 'active',
+  view: 'landing',
+  participantName: null // name set by participant on first visit
+};
+
+// Global photo store — avoids embedding base64 in onclick attributes
+let _kzPhotos = [];
+
+// Module-level state for forms (rebuilt each time modal opens)
+let _selCats = [];    // selected categories in add/edit form
+let _kpiRows  = [];   // KPI rows in create event form
+let _participants = []; // participant names in create event form
+let _panelState = {};     // { [opId]: {owner,priority,cats,status} } for inline assign panels
+let _modalOwner = '';     // owner selected in add/edit item modal
+let _modalPriority = 'Medium';   // priority in add/edit modal
+let _modalStatus = 'Not Started'; // status in add/edit modal
+let _vtRating = null;     // current vote selection in pass-the-tablet voting
+let _escapeCount = 0;     // triple-tap emergency exit counter
+let _escapeTimer = null;
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+function genCode(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;
+}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function daysUntil(d){
+  if(!d)return 999;
+  const t=new Date();t.setHours(0,0,0,0);
+  return Math.round((new Date(d+'T00:00:00')-t)/86400000);
+}
+function color(item){
+  if(item.status==='Complete')return 'g';
+  const d=daysUntil(item.dueDate);
+  if(d<0)return 'r';
+  if(d<=3)return 'y';
+  return 'x';
+}
+function fmtDate(d){if(!d)return '—';const x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtShort(d){if(!d)return '—';const x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function toast(msg,ms=2500){
+  document.querySelector('.toast')?.remove();
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},ms);
+}
+function copyText(txt){
+  navigator.clipboard.writeText(txt).catch(()=>{
+    const el=document.createElement('textarea');el.value=txt;document.body.appendChild(el);el.select();document.execCommand('copy');el.remove();
+  });
+}
+// Human-readable status label (internal value stays as stored)
+function statusLabel(s){
+  if(s==='sustain')return 'Sustain / In Progress';
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+// Handle both old string category and new array categories
+function getCats(item){
+  if(item.categories&&item.categories.length)return item.categories;
+  if(item.category)return [item.category];
+  return [];
+}
+// Auto-grow a textarea to fit its content — call on every input event
+// and once after the textarea is inserted into the DOM.
+function autoGrow(el){
+  el.style.height='auto';            // collapse to measure true scrollHeight
+  el.style.height=el.scrollHeight+'px'; // expand to fit content
+}
+
+// ═══════════════════════════════════════════════════════════
+// DRAFT AUTO-SAVE
+// ═══════════════════════════════════════════════════════════
+function saveDraft(){
+  // Collects current form state from the open create-event modal
+  const f=document.getElementById('createForm');if(!f)return;
+  const data={};
+  f.querySelectorAll('input[name],select[name],textarea[name]').forEach(el=>{data[el.name]=el.value;});
+  data.kpis=[..._kpiRows];
+  data.participants=[..._participants];
+  localStorage.setItem(DRAFT_KEY,JSON.stringify(data));
+}
+function clearDraft(){localStorage.removeItem(DRAFT_KEY);}
+function getDraft(){try{return JSON.parse(localStorage.getItem(DRAFT_KEY));}catch{return null;}}
+
+// ═══════════════════════════════════════════════════════════
+// POLL — stub kept for compatibility (no longer polls)
+// ═══════════════════════════════════════════════════════════
+function stopPoll(){}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER / MODAL
+// ═══════════════════════════════════════════════════════════
+function render(html){
+  const app=document.getElementById('app');
+  app.innerHTML=html;
+  app.classList.remove('page-enter');
+  void app.offsetWidth; // force reflow so animation retriggers
+  app.classList.add('page-enter');
+}
+// Voting screens use position:fixed overlays — CSS transforms on #app (from page-enter)
+// would break fixed positioning by creating a new containing block. Use this instead.
+function renderVoting(html){
+  const app=document.getElementById('app');
+  app.classList.remove('page-enter'); // ensure no transform
+  app.innerHTML=html;
+  // Safety: if the overlay fails to render visibly within 500ms, auto-recover.
+  const code=S.eventCode;
+  setTimeout(()=>{
+    const vfs=document.querySelector('.vfs');
+    if(!vfs||vfs.offsetHeight<50){
+      console.warn('[KZ] Voting overlay failed to render — auto-recovering for event:',code);
+      try{
+        const ev=DB.getEvent(code);
+        if(ev?.voting?.status==='voting'){ev.voting.status=null;DB.saveEvent(ev);}
+      }catch(e){}
+      toast('Display error — voting reset automatically.');
+      if(code)renderEvent(code,'admin');else renderDash();
+    }
+  },500);
+}
+function animateCount(el,target,ms=550){
+  const start=performance.now();
+  const tick=()=>{
+    const p=Math.min((performance.now()-start)/ms,1);
+    const eased=1-Math.pow(1-p,3);
+    el.textContent=Math.round(eased*target);
+    if(p<1)requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function modal(html){
+  closeModal();
+  const ov=document.createElement('div');ov.className='overlay';
+  ov.innerHTML=`<div class="modal">${html}</div>`;
+  ov.addEventListener('click',e=>{if(e.target===ov)closeModal();});
+  document.body.appendChild(ov);
+}
+function closeModal(){document.querySelector('.overlay')?.remove();}
+
+// Owner filter via data attribute — safe for any name characters
+function filterOwner(el,code,role){
+  const v=el.dataset.owner;
+  S.ownerFilter=(v===''||v===undefined)?null:v;
+  renderEvent(code,role);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════════════
+function init(){
+  // Clear any stale 'voting' state left from a crashed/reloaded session.
+  // 'voting' means a pass-the-tablet session was mid-flight — on fresh load that
+  // session is gone and the status is meaningless, so reset it immediately.
+  try{
+    const events=DB.getEvents();
+    Object.values(events).forEach(ev=>{
+      if(ev.voting?.status==='voting'){
+        ev.voting.status=null;
+        DB.saveEvent(ev);
+        console.log('[KZ] Cleared stale voting state for event:',ev.code,ev.name);
+      }
+    });
+  }catch(e){console.warn('[KZ] Error scanning voting state on init:',e);}
+
+  const adminName=sessionStorage.getItem('kz_admin');
+  if(adminName)S.user={name:adminName,role:'admin'};
+  if(S.user?.role==='admin')renderDash();
+  else renderLanding();
+}
+function logout(){
+  sessionStorage.removeItem('kz_admin');
+  S.user=null;
+  stopPoll();
+  renderLanding();
+}
+
+// ═══════════════════════════════════════════════════════════
+// LANDING
+// ═══════════════════════════════════════════════════════════
+function renderLanding(){
+  stopPoll();
+  S.view='landing';
+  render(`
+    <div class="land">
+      <div class="land-logo">KZ</div>
+      <h1>TAG Kaizen Tracker</h1>
+      <p class="land-sub">Continuous Improvement Event Management</p>
+      <div style="margin-top:8px;">
+        <button class="btn btn-gold" style="min-width:200px;font-size:17px;padding:16px 32px;" onclick="renderPIN()">🔐 Admin Login</button>
+      </div>
+      <p style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.3);">TAG Manufacturing • Kaizen Tracker</p>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PIN LOGIN
+// ═══════════════════════════════════════════════════════════
+function renderPIN(){
+  stopPoll();
+  S.view='pin';let pin='';
+  render(`
+    <div style="min-height:100vh;background:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;position:relative;">
+      <button class="back-btn" onclick="renderLanding()">← Back</button>
+      <div style="width:100%;max-width:360px;">
+        <div style="text-align:center;margin-bottom:28px;">
+          <div class="land-logo" style="margin-bottom:14px;">KZ</div>
+          <h2 style="color:#fff;font-size:22px;font-weight:800;">Admin Login</h2>
+          <p style="color:rgba(255,255,255,.55);margin-top:6px;font-size:14px;">Enter your 4-digit PIN</p>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="pin-dots">
+              <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+              <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+            </div>
+            <div class="pin-pad">
+              ${[1,2,3,4,5,6,7,8,9,'','0','⌫'].map(k=>`
+                <button class="pin-key" onclick="pinKey('${k}')" ${k===''?'style="visibility:hidden"':''}>${k}</button>
+              `).join('')}
+            </div>
+            <div id="pinErr" class="hidden mt3" style="color:var(--red);text-align:center;font-weight:700;font-size:14px;">Invalid PIN. Try again.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  window._pinKey=function(k){
+    if(k==='⌫')pin=pin.slice(0,-1);
+    else if(pin.length<4&&k!=='')pin+=k;
+    for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('on',i<pin.length);
+    document.getElementById('pinErr').classList.add('hidden');
+    if(pin.length===4){
+      setTimeout(()=>{
+        let found=null;
+        for(const [name,p] of Object.entries(CFG.pins)){if(pin===p){found=name;break;}}
+        if(found){S.user={name:found,role:'admin'};sessionStorage.setItem('kz_admin',found);renderDash();}
+        else{document.getElementById('pinErr').classList.remove('hidden');pin='';for(let i=0;i<4;i++)document.getElementById('d'+i).classList.remove('on');}
+      },200);
+    }
+  };
+}
+function pinKey(k){window._pinKey&&window._pinKey(k);}
+
+// ═══════════════════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDash(){
+  stopPoll();
+  S.view='dash';
+  const events=Object.values(DB.getEvents());
+  const tab=S.dashTab;
+  const shown=tab==='all'?events:events.filter(e=>e.status===tab);
+  shown.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const ac=events.filter(e=>e.status==='active').length;
+  const sc=events.filter(e=>e.status==='sustain').length;
+  const cc=events.filter(e=>e.status==='complete').length;
+
+  render(`
+    <div class="hdr"><div class="hdr-in">
+      <button class="btn-ico" onclick="logout()" title="Back">←</button>
+      <div class="hdr-logo">KZ</div>
+      <div class="hdr-text"><h1>Kaizen Tracker</h1><p>Admin · ${esc(S.user?.name)}</p></div>
+      <div class="hdr-brand"><div class="hdr-brand-main">Continuous Improvement</div><div class="hdr-brand-sub">TAG Manufacturing</div></div>
+      <div class="hdr-acts"><button class="btn-ico" onclick="logout()" title="Logout">🔓</button></div>
+    </div></div>
+    <div class="content">
+      <div class="flex aic jb mb3 mt2">
+        <span style="font-size:18px;font-weight:900;color:var(--navy);">Events Dashboard</span>
+        <button class="btn btn-gold btn-sm" onclick="showCreateModal()">+ New Event</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n">${events.length}</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n" style="color:#1565c0">${ac}</div><div class="stat-l">Active</div></div>
+        <div class="stat"><div class="stat-n" style="color:#e65100">${sc}</div><div class="stat-l">Sustain/IP</div></div>
+        <div class="stat"><div class="stat-n" style="color:var(--green)">${cc}</div><div class="stat-l">Complete</div></div>
+      </div>
+      <div class="tabs">
+        ${['active','sustain','complete','archived'].map(t=>`
+          <button class="tab ${tab===t?'on':''}" onclick="S.dashTab='${t}';renderDash()">
+            ${t==='sustain'?'Sustain/IP':statusLabel(t)}
+          </button>
+        `).join('')}
+      </div>
+      ${shown.length===0?`
+        <div style="text-align:center;padding:48px 20px;color:var(--gray-400);">
+          <div style="font-size:52px;margin-bottom:12px;">📋</div>
+          <p style="font-size:15px;">No ${statusLabel(tab)} events</p>
+          ${tab==='active'?`<button class="btn btn-gold mt3" onclick="showCreateModal()">Create First Event</button>`:''}
+        </div>
+      `:shown.map(ev=>dashCard(ev)).join('')}
+    </div>
+  `);
+  // Animate stat numbers on entry
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.stat-n').forEach(el=>{
+      const n=parseInt(el.textContent)||0;
+      if(n>0)animateCount(el,n);
+    });
+  });
+}
+
+function dashCard(ev){
+  const items=DB.getItems(ev.code);
+  const total=items.length,done=items.filter(i=>i.status==='Complete').length;
+  const over=items.filter(i=>i.status!=='Complete'&&daysUntil(i.dueDate)<0).length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const barColor={active:'#1565c0',sustain:'#e65100',complete:'#2e7d32',archived:'#9e9e9e'}[ev.status]||'#9e9e9e';
+  return `
+    <div class="eli" onclick="openAdminEvent('${esc(ev.code)}')">
+      <div class="eli-bar" style="background:${barColor}"></div>
+      <div style="flex:1;min-width:0;">
+        <div class="flex aic g2 mb2">
+          <span class="badge b-${esc(ev.status)}">${statusLabel(ev.status)}</span>
+        </div>
+        <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(ev.name)}</div>
+        <div class="txt-sm txt-muted mb2">${esc(ev.plant)} · ${fmtDate(ev.date)}</div>
+        ${total>0?`
+          <div class="prog-wrap mb2"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <div class="flex jb txt-xs txt-muted">
+            <span>${done}/${total} complete · ${pct}%</span>
+            ${over>0?`<span style="color:var(--red);font-weight:700;">⚠ ${over} overdue</span>`:''}
+          </div>
+        `:`<span class="txt-xs txt-muted">No action items yet</span>`}
+        <div class="flex g2 mt3">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showStatusModal('${esc(ev.code)}')">Status</button>
+        </div>
+      </div>
+      <button onclick="event.stopPropagation();deleteEvent('${esc(ev.code)}')" title="Delete event"
+        style="flex-shrink:0;width:32px;height:32px;border:2px solid var(--red);border-radius:6px;background:transparent;color:var(--red);font-size:16px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:.12s;align-self:flex-start;">×</button>
+    </div>
+  `;
+}
+
+function openAdminEvent(code){S.eventCode=code;renderEvent(code,'admin');}
+
+function deleteEvent(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!confirm(`Permanently delete "${ev.name}" and all its data?\n\nThis cannot be undone.`))return;
+  // Remove event record
+  const events=DB.getEvents();
+  delete events[code];
+  localStorage.setItem('kz_events',JSON.stringify(events));
+  // Remove all associated localStorage keys
+  localStorage.removeItem('kz_i_'+code);       // action items
+  localStorage.removeItem('kz_v_'+code);        // votes (legacy)
+  localStorage.removeItem('kz_votes2_'+code);   // votes (current)
+  toast(ev.name+' deleted.');
+  renderDash();
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATUS MODAL
+// ═══════════════════════════════════════════════════════════
+function showStatusModal(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const opts=['active','sustain','complete','archived'];
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Change Status</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <p class="bold mb2">${esc(ev.name)}</p>
+      <p class="txt-sm txt-muted mb4">Current: <strong>${statusLabel(ev.status)}</strong></p>
+      <div style="display:grid;gap:10px;">
+        ${opts.map(s=>`
+          <button class="btn ${ev.status===s?'btn-gold':'btn-outline'} btn-full" onclick="setStatus('${code}','${s}')">
+            ${ev.status===s?'✓ ':''}${statusLabel(s)}
+            ${s==='archived'?' — admin-only visibility':''}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+
+function setStatus(code,status){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.status=status;DB.saveEvent(ev);
+  closeModal();toast('Status updated to '+statusLabel(status));
+  if(S.view==='event')renderEvent(code,'admin');
+  else renderDash();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PARTICIPANT HELPERS — create form
+// ═══════════════════════════════════════════════════════════
+function renderParticipantTags(){
+  const el=document.getElementById('participantTags');if(!el)return;
+  if(_participants.length===0){
+    el.innerHTML='<p class="txt-xs txt-muted" style="padding:4px 0;">No participants added yet.</p>';return;
+  }
+  el.innerHTML=_participants.map((p,idx)=>`
+    <div style="display:inline-flex;align-items:center;gap:4px;background:var(--navy);color:#fff;border-radius:100px;font-size:13px;font-weight:700;padding:5px 6px 5px 13px;">
+      ${esc(p)}
+      <button type="button" onclick="removeParticipant(${idx})" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0;">×</button>
+    </div>
+  `).join('');
+}
+function addParticipant(){
+  const inp=document.getElementById('participantIn');
+  const name=(inp?.value||'').trim();
+  if(!name){toast('Enter a name');return;}
+  if(_participants.includes(name)){toast(name+' is already in the list');return;}
+  _participants.push(name);
+  if(inp)inp.value='';
+  renderParticipantTags();
+  saveDraft();
+  inp?.focus();
+}
+function removeParticipant(idx){
+  _participants.splice(idx,1);
+  renderParticipantTags();
+  saveDraft();
+}
+
+// ── Participant management on event detail page (admin) ──
+function removeParticipantEl(btn){
+  doRemoveParticipant(btn.dataset.code,btn.dataset.name);
+}
+function doAddParticipant(code,role){
+  const inp=document.getElementById('participantIn');
+  const name=(inp?.value||'').trim();
+  if(!name){toast('Enter a name');return;}
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.participants)ev.participants=[];
+  if(ev.participants.includes(name)){toast(name+' is already a participant');return;}
+  ev.participants.push(name);
+  DB.saveEvent(ev);
+  if(inp)inp.value='';
+  renderEvent(code,role);
+}
+function doRemoveParticipant(code,name){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const hasItems=DB.getItems(code).some(i=>i.owner===name);
+  if(hasItems&&!confirm(name+' has assigned action items. Remove anyway?'))return;
+  ev.participants=(ev.participants||[]).filter(p=>p!==name);
+  DB.saveEvent(ev);
+  renderEvent(code,'admin');
+}
+
+// ═══════════════════════════════════════════════════════════
+// KPI ROW HELPERS
+// ═══════════════════════════════════════════════════════════
+function renderKpiRows(){
+  const el=document.getElementById('kpiRows');if(!el)return;
+  el.innerHTML=_kpiRows.map((kpi,idx)=>`
+    <div class="kpi-row">
+      <textarea class="ctrl ctrl-grow kpi-row-left" rows="2" placeholder="e.g. Delivery — OTD, Current: 82%"
+        oninput="_kpiRows[${idx}].name=this.value;autoGrow(this);saveDraft()">${esc(kpi.name)}</textarea>
+      <textarea class="ctrl ctrl-grow kpi-row-right" rows="2" placeholder="Target: 95%"
+        oninput="_kpiRows[${idx}].target=this.value;autoGrow(this);saveDraft()">${esc(kpi.target)}</textarea>
+      ${_kpiRows.length>1?`<button type="button" class="kpi-row-x" onclick="removeKpiRow(${idx})">×</button>`:'<div style="width:32px;flex-shrink:0;"></div>'}
+    </div>
+  `).join('');
+  // Expand any textareas that already have content (e.g. restored from draft)
+  el.querySelectorAll('textarea').forEach(ta=>autoGrow(ta));
+}
+function addKpiRow(){_kpiRows.push({name:'',target:''});renderKpiRows();saveDraft();}
+function removeKpiRow(idx){if(_kpiRows.length<=1)return;_kpiRows.splice(idx,1);renderKpiRows();saveDraft();}
+
+// ═══════════════════════════════════════════════════════════
+// CATEGORY CHIP HELPERS
+// ═══════════════════════════════════════════════════════════
+function renderCatChips(){
+  const el=document.getElementById('catChips');if(!el)return;
+  el.innerHTML=CATS.map(c=>`
+    <div class="cat-chip ${_selCats.includes(c)?'on':''}" onclick="toggleCat('${c}')">${c}</div>
+  `).join('');
+}
+function toggleCat(cat){
+  const i=_selCats.indexOf(cat);
+  if(i>-1)_selCats.splice(i,1);else _selCats.push(cat);
+  renderCatChips();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CREATE EVENT MODAL — with draft auto-save + KPI rows
+// ═══════════════════════════════════════════════════════════
+function showCreateModal(){
+  const draft=getDraft();
+  const d=draft||{};
+
+  // Init KPI rows and participants from draft or fresh
+  _kpiRows=draft?.kpis?.length?draft.kpis:[{name:'',target:''}];
+  _participants=draft?.participants||[];
+
+  modal(`
+    <div class="modal-hdr">
+      <span class="modal-title">New Kaizen Event</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      ${draft?`
+        <div class="draft-banner">
+          <span class="txt-sm bold">📝 Draft saved — your last entry has been restored.</span>
+          <button type="button" class="btn btn-outline btn-sm" style="border-color:var(--red);color:var(--red);flex-shrink:0;" onclick="clearDraft();showCreateModal()">Clear Draft</button>
+        </div>
+      `:''}
+      <form id="createForm" onsubmit="submitCreate(event)">
+        <div class="fg"><label class="lbl">Event Name *</label>
+          <input class="ctrl" name="name" value="${esc(d.name||'')}" placeholder="e.g. Press Line Changeover Reduction" required oninput="saveDraft()"></div>
+        <div class="fg"><label class="lbl">Plant / Area *</label>
+          <input class="ctrl" name="plant" value="${esc(d.plant||'')}" placeholder="e.g. Plant 2 – Stamping" required oninput="saveDraft()"></div>
+        <div class="fg"><label class="lbl">Event Date *</label>
+          <input class="ctrl" type="date" name="date" value="${d.date||todayStr()}" required onchange="saveDraft()"></div>
+        <div class="fg"><label class="lbl">Facilitator Name</label>
+          <input class="ctrl" name="facilitator" value="${esc(d.facilitator||'')}" placeholder="e.g. Chase Singleton" oninput="saveDraft()"></div>
+        <div class="fg"><label class="lbl">Problem Statement</label>
+          <textarea class="ctrl ctrl-grow" name="problem" rows="3" placeholder="Describe the problem being addressed in this kaizen event…" oninput="autoGrow(this);saveDraft()">${esc(d.problem||'')}</textarea></div>
+
+        <div class="fg">
+          <label class="lbl">KPI Connections</label>
+          <div id="kpiRows"></div>
+          <button type="button" class="btn btn-gold btn-sm" onclick="addKpiRow()">+ Add KPI</button>
+        </div>
+
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Current State Metric</label>
+            <input class="ctrl" name="currentMetric" value="${esc(d.currentMetric||'')}" placeholder="e.g. 45 min/changeover" oninput="saveDraft()"></div>
+          <div class="fg"><label class="lbl">Target Metric</label>
+            <input class="ctrl" name="targetMetric" value="${esc(d.targetMetric||'')}" placeholder="e.g. 25 min/changeover" oninput="saveDraft()"></div>
+        </div>
+
+        <div class="fg">
+          <label class="lbl">Participants</label>
+          <div id="participantTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px;"></div>
+          <div class="flex g2">
+            <input id="participantIn" class="ctrl" placeholder="e.g. Sarah Chen"
+              style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addParticipant();}">
+            <button type="button" class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="addParticipant()">Add</button>
+          </div>
+          <p class="txt-xs txt-muted mt1">These names appear in owner dropdowns for action items and voting assignments.</p>
+        </div>
+
+        <div class="flex g2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="flex:1">Create Event</button>
+        </div>
+      </form>
+    </div>
+  `);
+  // Render KPI rows and participant tags into the form now that the DOM exists
+  renderKpiRows();
+  renderParticipantTags();
+  // Auto-grow all textareas in case draft content was restored
+  document.querySelectorAll('#createForm textarea').forEach(ta=>autoGrow(ta));
+}
+
+function submitCreate(e){
+  e.preventDefault();
+  const d=Object.fromEntries(new FormData(e.target));
+  const events=DB.getEvents();
+  let code;do{code=genCode();}while(events[code]);
+  const ev={
+    code,name:d.name,plant:d.plant,date:d.date,
+    facilitator:d.facilitator||'',problem:d.problem||'',
+    kpis:_kpiRows.filter(k=>k.name||k.target),
+    participants:[..._participants],
+    currentMetric:d.currentMetric||'',targetMetric:d.targetMetric||'',
+    status:'active',createdAt:new Date().toISOString(),createdBy:S.user?.name||'Admin'
+  };
+  DB.saveEvent(ev);
+  clearDraft();
+  closeModal();toast('Event created!');
+  setTimeout(()=>{S.eventCode=code;renderEvent(code,'admin');},400);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDIT EVENT MODAL
+// ═══════════════════════════════════════════════════════════
+function showEditEventModal(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  // Seed module-level form state from current event data
+  _kpiRows=ev.kpis?.length
+    ?ev.kpis.map(k=>({name:k.name||'',target:k.target||''}))
+    :[{name:'',target:''}];
+  _participants=[...(ev.participants||[])];
+  modal(`
+    <div class="modal-hdr">
+      <span class="modal-title">Edit Event</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="editForm" onsubmit="submitEditEvent(event,'${esc(code)}')">
+        <div class="fg"><label class="lbl">Event Name *</label>
+          <input class="ctrl" name="name" value="${esc(ev.name||'')}"
+            placeholder="e.g. Press Line Changeover Reduction" required></div>
+        <div class="fg"><label class="lbl">Plant / Area *</label>
+          <input class="ctrl" name="plant" value="${esc(ev.plant||'')}"
+            placeholder="e.g. Plant 2 – Stamping" required></div>
+        <div class="fg"><label class="lbl">Event Date *</label>
+          <input class="ctrl" type="date" name="date" value="${ev.date||todayStr()}" required></div>
+        <div class="fg"><label class="lbl">Facilitator Name</label>
+          <input class="ctrl" name="facilitator" value="${esc(ev.facilitator||'')}"
+            placeholder="e.g. Chase Singleton"></div>
+        <div class="fg"><label class="lbl">Problem Statement</label>
+          <textarea class="ctrl ctrl-grow" name="problem" rows="3"
+            placeholder="Describe the problem being addressed in this kaizen event…"
+            oninput="autoGrow(this)">${esc(ev.problem||'')}</textarea></div>
+
+        <div class="fg">
+          <label class="lbl">KPI Connections</label>
+          <div id="kpiRows"></div>
+          <button type="button" class="btn btn-gold btn-sm" onclick="addKpiRow()">+ Add KPI</button>
+        </div>
+
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Current State Metric</label>
+            <input class="ctrl" name="currentMetric" value="${esc(ev.currentMetric||'')}"
+              placeholder="e.g. 45 min/changeover"></div>
+          <div class="fg"><label class="lbl">Target Metric</label>
+            <input class="ctrl" name="targetMetric" value="${esc(ev.targetMetric||'')}"
+              placeholder="e.g. 25 min/changeover"></div>
+        </div>
+
+        <div class="fg">
+          <label class="lbl">Participants</label>
+          <p class="txt-xs txt-muted mb2">⚠ Participants with assigned action items cannot be removed.</p>
+          <div id="participantTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px;"></div>
+          <div class="flex g2">
+            <input id="participantIn" class="ctrl" placeholder="e.g. Sarah Chen"
+              style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addParticipant();}">
+            <button type="button" class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="addParticipant()">Add</button>
+          </div>
+        </div>
+
+        <div id="editFormErr" class="val-err" style="margin-bottom:10px;font-size:13px;"></div>
+        <div class="flex g2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="flex:1">💾 Save Changes</button>
+        </div>
+      </form>
+    </div>
+  `);
+  renderKpiRows();
+  renderParticipantTags();
+  document.querySelectorAll('#editForm textarea').forEach(ta=>autoGrow(ta));
+}
+
+function submitEditEvent(e,code){
+  e.preventDefault();
+  const ev=DB.getEvent(code);if(!ev)return;
+  const d=Object.fromEntries(new FormData(e.target));
+  const errEl=document.getElementById('editFormErr');
+  // Validate: check if any currently-removed participants have assigned items
+  const origParticipants=ev.participants||[];
+  const newParticipants=[..._participants];
+  const removed=origParticipants.filter(p=>!newParticipants.includes(p));
+  if(removed.length>0){
+    const items=DB.getItems(code);
+    const blocked=removed.filter(p=>items.some(i=>i.owner===p));
+    if(blocked.length>0){
+      const names=blocked.join(', ');
+      if(errEl){
+        errEl.textContent=`Cannot remove ${names} — they have assigned action items. Reassign or complete their items first.`;
+        errEl.classList.add('show');
+      }
+      toast('Cannot remove participant with assigned items.');
+      return;
+    }
+  }
+  if(errEl)errEl.classList.remove('show');
+  // Apply updates to existing event (preserve code, status, a3, notes, votes, etc.)
+  ev.name=d.name;
+  ev.plant=d.plant;
+  ev.date=d.date;
+  ev.facilitator=d.facilitator||'';
+  ev.problem=d.problem||'';
+  ev.kpis=_kpiRows.filter(k=>k.name||k.target);
+  ev.participants=newParticipants;
+  ev.currentMetric=d.currentMetric||'';
+  ev.targetMetric=d.targetMetric||'';
+  DB.saveEvent(ev);
+  closeModal();
+  toast('Event updated!');
+  renderEvent(code,'admin');
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT VIEW
+// ═══════════════════════════════════════════════════════════
+function renderEvent(code,role){
+  stopPoll();
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(S.eventCode!==code)S.ownerFilter=null;
+  S.eventCode=code;S.view='event';
+
+  const items=DB.getItems(code);
+  const total=items.length;
+  const done=items.filter(i=>i.status==='Complete').length;
+  const over=items.filter(i=>i.status!=='Complete'&&daysUntil(i.dueDate)<0).length;
+  const prog=items.filter(i=>i.status==='In Progress').length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const isAdmin=role==='admin';
+  const week=items.filter(i=>i.status!=='Complete'&&daysUntil(i.dueDate)>=0&&daysUntil(i.dueDate)<=7);
+  const itemOwners=[...new Set(items.map(i=>i.owner).filter(Boolean))];
+  // Filter chips: participant list first, then any item owners not in that list (legacy data)
+  const evParticipants=ev.participants||[];
+  const owners=[...new Set([...evParticipants,...itemOwners])];
+
+  let disp=[...items];
+  if(S.ownerFilter)disp=disp.filter(i=>i.owner===S.ownerFilter);
+  const order={r:0,y:1,x:2,g:3};
+  disp.sort((a,b)=>(order[color(a)]||0)-(order[color(b)]||0));
+
+  // A3 attachment
+  const a3=ev.a3||null;
+
+  render(`
+    <div class="hdr"><div class="hdr-in">
+      <button class="btn-ico" onclick="renderDash()" title="Back">←</button>
+      <div class="hdr-logo">KZ</div>
+      <div class="hdr-text">
+        <h1>${esc(ev.name)}</h1>
+        <p>${esc(ev.plant)} · ${fmtDate(ev.date)}</p>
+      </div>
+      <div class="hdr-brand"><div class="hdr-brand-main">Continuous Improvement</div><div class="hdr-brand-sub">TAG Manufacturing</div></div>
+      <div class="hdr-acts">
+        ${isAdmin&&ev.voting?.status?`<button class="btn-ico" onclick="doResetVoting('${code}')" title="Reset Voting" style="font-size:16px;">↺</button>`:''}
+        ${isAdmin?`<button class="btn-ico" onclick="showEditEventModal('${code}')" title="Edit Event">✏️</button>`:''}
+        ${isAdmin?`<button class="btn-ico" onclick="renderDash()" title="Dashboard">🏠</button>`:''}
+        ${isAdmin?`<button class="btn-ico" onclick="showInfoModal('${code}')" title="Event Info">ℹ️</button>`:''}
+      </div>
+    </div></div>
+
+    <div class="content">
+      <!-- Progress card (admin only) -->
+      ${isAdmin?`
+      <div class="card mb3">
+        <div class="card-body">
+          <div class="flex aic jb mb2">
+            <span style="font-weight:800;font-size:14px;color:var(--navy);">Overall Progress</span>
+            <span style="font-size:20px;font-weight:900;color:var(--navy);">${pct}%</span>
+          </div>
+          <div class="prog-wrap mb2"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <p class="txt-xs txt-muted mb3" style="text-align:center;">${done} of ${total} complete</p>
+          <div class="stats" style="margin-bottom:0;">
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;">${total}</div><div class="stat-l">Total</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:var(--green);">${done}</div><div class="stat-l">Done</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:#1565c0;">${prog}</div><div class="stat-l">Active</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:var(--red);">${over}</div><div class="stat-l">Overdue</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status row -->
+      <div class="flex aic jb mb3">
+        <span class="badge b-${esc(ev.status)}" style="font-size:12px;padding:5px 13px;">${statusLabel(ev.status).toUpperCase()}</span>
+        <button class="btn btn-outline btn-sm" onclick="showStatusModal('${code}')">Change Status</button>
+      </div>
+      `:''}
+
+
+      <!-- Participants (admin only) -->
+      ${isAdmin?`
+        <div class="card mb3">
+          <div class="card-body">
+            <div class="flex aic jb mb2">
+              <span class="sec-title">Participants (${evParticipants.length})</span>
+            </div>
+            ${evParticipants.length>0?`
+              <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+                ${evParticipants.map(p=>`
+                  <div style="display:inline-flex;align-items:center;gap:4px;background:var(--navy);color:#fff;border-radius:100px;font-size:13px;font-weight:700;padding:5px 6px 5px 13px;">
+                    ${esc(p)}
+                    <button data-code="${esc(code)}" data-name="${esc(p)}" onclick="removeParticipantEl(this)" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0;" title="Remove">×</button>
+                  </div>
+                `).join('')}
+              </div>
+            `:`<p class="txt-xs txt-muted mb3">No participants added yet. Add them to use owner chip selection when assigning items.</p>`}
+            <div class="flex g2">
+              <input id="participantIn" class="ctrl" placeholder="Add participant name…" style="flex:1;"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();doAddParticipant('${esc(code)}','${role}');}">
+              <button class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="doAddParticipant('${esc(code)}','${role}')">Add</button>
+            </div>
+          </div>
+        </div>
+      `:''}
+
+      <!-- Meeting Notes (admin only) -->
+      ${isAdmin?`
+        <div class="card mb3">
+          <div class="card-body">
+            <div class="sec-hdr mb2">
+              <span class="sec-title">Meeting Notes</span>
+            </div>
+            <textarea id="notesArea" class="ctrl" rows="5" placeholder="Add meeting notes, root cause observations, constraints, or insights here...">${esc(ev.notes||'')}</textarea>
+            <button class="btn btn-navy btn-sm mt2" onclick="saveNotes('${esc(code)}')">💾 Save Notes</button>
+          </div>
+        </div>
+      `:''}
+
+      <!-- A3 Document section (admin only) -->
+      ${isAdmin?buildA3SectionHTML(code,role,ev):''}
+
+      <!-- Opportunities & Voting (admin only) -->
+      ${isAdmin?`<div id="opp-section">${buildOppSectionHTML(code,role,ev)}</div>`:''}
+
+      <!-- Due this week -->
+      <div id="p-due-week">${week.length>0?`
+        <div class="due-week mb3">
+          <div class="due-week-title">⚡ Due This Week (${week.length})</div>
+          ${week.map(i=>`
+            <div class="due-row" onclick="showItemDetail('${code}','${esc(i.id)}','${role}')">
+              <span class="txt-sm bold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(i.description)}</span>
+              <span class="txt-xs bold" style="color:var(--yellow);flex-shrink:0;margin-left:8px;">${fmtShort(i.dueDate)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `:''}</div>
+
+      <!-- Owner filter (admin only) -->
+      ${isAdmin&&owners.length>1?`
+        <div class="chips">
+          <div class="chip ${!S.ownerFilter?'on':''}" data-owner="" onclick="filterOwner(this,'${code}','${role}')">All</div>
+          ${owners.map(o=>`<div class="chip ${S.ownerFilter===o?'on':''}" data-owner="${esc(o)}" onclick="filterOwner(this,'${code}','${role}')">${esc(o)}</div>`).join('')}
+        </div>
+      `:''}
+
+      <!-- Action items -->
+      <div class="sec-hdr">
+        <span class="sec-title">Action Items${S.ownerFilter?' — '+esc(S.ownerFilter):''}</span>
+        <div class="flex g2">
+          ${isAdmin?`<button class="btn btn-outline btn-sm" style="font-size:12px;min-height:32px;padding:5px 11px;" onclick="exportActionItems('${esc(code)}')">⬇ Export</button>`:''}
+          <button class="btn btn-gold btn-sm" onclick="showAddModal('${code}','${role}')">+ Add</button>
+        </div>
+      </div>
+
+      <div id="p-items-list">${disp.length===0?`
+        <div style="text-align:center;padding:44px 16px;color:var(--gray-400);">
+          <div style="font-size:48px;margin-bottom:12px;">📝</div>
+          <p>${total===0?'No action items yet.':'No items match this filter.'}</p>
+          ${isAdmin&&total===0?`<button class="btn btn-gold mt3" onclick="showAddModal('${code}','${role}')">Add First Item</button>`:''}
+        </div>
+      `:disp.map(i=>aiCard(i,code,role)).join('')}</div>
+
+    </div>
+  `);
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.stat-n').forEach(el=>{
+      const n=parseInt(el.textContent)||0;
+      if(n>0)animateCount(el,n);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACTION ITEM CARD
+// ═══════════════════════════════════════════════════════════
+function aiCard(item,code,role){
+  const c=color(item);
+  const d=daysUntil(item.dueDate);
+  const isOwner=role==='participant'&&S.participantName&&item.owner===S.participantName;
+  const isAdmin=role==='admin';
+  let dueLabel='';
+  if(item.status!=='Complete'){
+    if(d<0)dueLabel=`<span style="color:var(--red);font-weight:700;font-size:12px;">⚠ ${Math.abs(d)}d overdue</span>`;
+    else if(d===0)dueLabel=`<span style="color:var(--yellow);font-weight:700;font-size:12px;">Due today!</span>`;
+    else if(d<=3)dueLabel=`<span style="color:var(--yellow);font-weight:700;font-size:12px;">Due in ${d}d</span>`;
+    else dueLabel=`<span class="txt-xs txt-muted">Due ${fmtShort(item.dueDate)}</span>`;
+  }
+  const dotClass={g:'dot-g',y:'dot-y',r:'dot-r',x:'dot-x'}[c]||'dot-x';
+  const cats=getCats(item);
+  const ownerIndicator=isOwner?`<span style="background:var(--gold);color:var(--navy);font-size:10px;font-weight:800;padding:2px 7px;border-radius:100px;margin-left:4px;">YOUR ITEM</span>`:'';
+  return `
+    <div class="ai ${c}" onclick="showItemDetail('${code}','${esc(item.id)}','${role}')">
+      <div class="flex aic jb mb2">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:15px;margin-bottom:5px;word-break:break-word;">${esc(item.description)}</div>
+          ${item.fromOpRank?`<div class="from-opp-tag">📌 From Opportunity #${item.fromOpRank}</div>`:''}
+          <div class="flex g2" style="flex-wrap:wrap;gap:4px;margin-top:${item.fromOpRank?'5px':'0'};">
+            ${cats.map(cat=>`<span style="background:rgba(0,0,0,.07);color:var(--gray-800);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;">${esc(cat)}</span>`).join('')}
+            <span style="background:rgba(0,0,0,.07);color:var(--gray-800);font-size:11px;font-weight:700;padding:2px 8px;border-radius:100px;">${esc(item.priority||'—')}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:10px;flex-shrink:0;">
+          <span style="font-size:11px;font-weight:700;color:var(--gray-600);">${esc(item.status)}</span>
+          <div class="dot ${dotClass}"></div>
+        </div>
+      </div>
+      <div class="flex aic jb">
+        <div>
+          <div class="txt-sm bold">${esc(item.owner||'Unassigned')}${ownerIndicator}</div>
+          ${dueLabel}
+        </div>
+        ${item.photos&&item.photos.length>0?`<span class="txt-xs txt-muted">📷 ${item.photos.length}</span>`:''}
+      </div>
+      ${item.comment?`<div class="mt2" style="background:rgba(0,0,0,.05);border-radius:6px;padding:8px;font-size:13px;color:var(--gray-600);">${esc(item.comment)}</div>`:''}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ADD ITEM MODAL (admin only)
+// ═══════════════════════════════════════════════════════════
+function showAddModal(code,role){
+  _selCats=[];
+  _modalOwner='';
+  _modalPriority='Medium';
+  _modalStatus='Not Started';
+  const ev=DB.getEvent(code);
+  const pts=ev?.participants||[];
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Add Action Item</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="submitAdd(event,'${code}','${role}')">
+        <div class="fg"><label class="lbl">Description *</label>
+          <input class="ctrl" name="description" placeholder="What needs to be done?" required></div>
+        <div class="fg"><label class="lbl">Owner *</label>
+          ${pts.length
+            ?`<div class="owner-chips mb1">${pts.map(p=>`<div class="owner-chip modal-owner-chip" data-name="${esc(p)}" onclick="selectModalOwner(this)">${esc(p)}</div>`).join('')}</div>
+              <div id="modal_owner_err" class="val-err">Please select an owner</div>`
+            :`<input class="ctrl" id="modal_owner_text" placeholder="Who is responsible?">`}
+        </div>
+        <div class="fg"><label class="lbl">Due Date</label>
+          <input class="ctrl" type="date" name="dueDate"></div>
+        <div class="fg"><label class="lbl">Priority</label>
+          <div class="tap-row">
+            ${['Low','Medium','High'].map(p=>`<div class="tap-opt modal-priority-opt${p==='Medium'?' sel':''}" data-val="${p}" onclick="selectModalPriority(this)">${p}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Categories (select all that apply)</label>
+          <div id="catChips" class="cat-chips"></div>
+        </div>
+        <div class="fg"><label class="lbl">Status</label>
+          <div class="tap-row">
+            ${['Not Started','In Progress','Complete'].map(s=>`<div class="tap-opt modal-status-opt${s==='Not Started'?' sel':''}" data-val="${s}" onclick="selectModalStatus(this)" style="font-size:12px;">${s}</div>`).join('')}
+          </div>
+        </div>
+        <div class="flex g2 mt2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="flex:1">Add Item</button>
+        </div>
+      </form>
+    </div>
+  `);
+  renderCatChips();
+}
+
+function submitAdd(e,code,role){
+  e.preventDefault();
+  const data=Object.fromEntries(new FormData(e.target));
+  const ev=DB.getEvent(code);
+  const pts=ev?.participants||[];
+  let owner;
+  if(pts.length){
+    owner=_modalOwner;
+    if(!owner){const err=document.getElementById('modal_owner_err');if(err)err.classList.add('show');return;}
+  } else {
+    owner=(document.getElementById('modal_owner_text')?.value||'').trim();
+    if(!owner){toast('Please enter an owner name');return;}
+  }
+  data.owner=owner;
+  data.priority=_modalPriority;
+  data.status=_modalStatus;
+  data.categories=[..._selCats];
+  delete data.category;
+  DB.addItem(code,data);
+  closeModal();toast('Action item added!');
+  renderEvent(code,role);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ITEM DETAIL MODAL — permission-aware
+// ═══════════════════════════════════════════════════════════
+function showItemDetail(code,id,role){
+  const item=DB.getItems(code).find(i=>i.id===id);
+  if(!item)return;
+  const c=color(item);
+  const isAdmin=role==='admin'||role==='facilitator';
+  const isOwner=role==='participant'&&S.participantName&&item.owner===S.participantName;
+  const canEdit=isAdmin||isOwner;
+
+  _kzPhotos=(item.photos||[]).map(p=>p.data);
+
+  const hdrBg={g:'var(--green)',y:'var(--yellow-border)',r:'var(--red)',x:'var(--gray-600)'}[c];
+  const hdrLabel={g:'✅ Complete',y:'⚡ Due Soon',r:'🔴 Overdue',x:'⚪ Not Started'}[c];
+  const cats=getCats(item);
+
+  modal(`
+    <div class="modal-hdr" style="background:${hdrBg}">
+      <span class="modal-title">${hdrLabel}</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <h3 style="font-size:17px;font-weight:800;color:var(--navy);margin-bottom:${item.fromOpId?'6px':'14px'};word-break:break-word;">${esc(item.description)}</h3>
+      ${item.fromOpId?`<div class="from-opp-tag" style="margin-bottom:12px;">🎯 From opportunity #${(DB.getEvent(code)?.voting?.ranked||DB.getEvent(code)?.opportunities||[]).findIndex(o=>o.id===item.fromOpId)+1||'?'}</div>`:''}
+      <div class="grid2" style="margin-bottom:14px;">
+        <div><div class="lbl">Owner</div><div class="bold">${esc(item.owner||'—')}</div></div>
+        <div><div class="lbl">Due Date</div><div class="bold">${fmtDate(item.dueDate)}</div></div>
+        <div><div class="lbl">Priority</div>
+          <div class="bold" style="color:${{'High':'var(--red)','Medium':'var(--yellow)','Low':'var(--green)'}[item.priority]||'inherit'}">${esc(item.priority||'—')}</div>
+        </div>
+        <div><div class="lbl">Categories</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;">
+            ${cats.length?cats.map(cat=>`<span style="background:var(--gold);color:var(--navy);font-size:11px;font-weight:800;padding:2px 8px;border-radius:100px;">${esc(cat)}</span>`).join(''):'<span class="txt-muted">—</span>'}
+          </div>
+        </div>
+      </div>
+
+      ${!canEdit&&role==='participant'?`
+        <div class="perm-notice">ℹ️ Only the item owner or an admin can edit this item.</div>
+      `:''}
+
+      <div class="fg"><label class="lbl">Status</label>
+        ${canEdit?`
+          <select class="ctrl" id="iStatus">
+            ${['Not Started','In Progress','Complete'].map(s=>`<option value="${s}"${item.status===s?' selected':''}>${s}</option>`).join('')}
+          </select>
+        `:`<div class="ro-field">${esc(item.status)}</div>`}
+      </div>
+
+      <div class="fg"><label class="lbl">Comments / Updates</label>
+        ${canEdit?`
+          <textarea class="ctrl" id="iComment" rows="4" placeholder="Add a status note...">${esc(item.comment||'')}</textarea>
+        `:`<div class="ro-field" style="min-height:60px;white-space:pre-wrap;">${esc(item.comment||'No comments yet.')}</div>`}
+      </div>
+
+      <div class="fg">
+        <label class="lbl">Photos (Before / After)</label>
+        ${item.photos&&item.photos.length>0?`
+          <div class="photo-grid">
+            ${item.photos.map((p,idx)=>`
+              <div style="position:relative;">
+                <img src="${p.data}" class="photo-thumb" onclick="viewPhoto(${idx})">
+                ${isAdmin?`<button onclick="event.stopPropagation();removePhoto('${code}','${id}',${idx},'${role}')"
+                  style="position:absolute;top:2px;right:2px;background:var(--red);color:#fff;border:none;border-radius:4px;width:20px;height:20px;font-size:11px;cursor:pointer;font-weight:800;">×</button>`:''}
+              </div>
+            `).join('')}
+          </div>
+        `:''}
+        ${canEdit?`
+          <label style="display:block;cursor:pointer;margin-top:8px;">
+            <div class="photo-drop">📷 Tap to add photo</div>
+            <input type="file" accept="image/*" class="hidden" onchange="addPhoto(event,'${code}','${id}','${role}')">
+          </label>
+        `:''}
+      </div>
+
+      ${canEdit?`
+        <div class="flex g2 mt3">
+          <button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          <button class="btn btn-gold" style="flex:1" onclick="saveItem('${code}','${id}','${role}')">Save</button>
+        </div>
+      `:`
+        <button class="btn btn-navy btn-full mt3" onclick="closeModal()">Close</button>
+      `}
+
+      ${isAdmin?`
+        <hr class="divider mt3">
+        <div class="flex g2">
+          <button class="btn btn-outline" style="flex:1" onclick="showEditModal('${code}','${id}','${role}')">✏️ Edit Details</button>
+          <button class="btn btn-red btn-sm" onclick="confirmDelete('${code}','${id}','${role}')">🗑️</button>
+        </div>
+      `:''}
+    </div>
+  `);
+}
+
+function saveItem(code,id,role){
+  const status=document.getElementById('iStatus').value;
+  const comment=document.getElementById('iComment').value;
+  DB.updateItem(code,id,{status,comment});
+  closeModal();toast('Saved!');renderEvent(code,role);
+}
+
+function viewPhoto(idx){
+  const src=_kzPhotos[idx];if(!src)return;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
+  const img=document.createElement('img');
+  img.src=src;img.style.cssText='max-width:95vw;max-height:95vh;border-radius:8px;';
+  ov.appendChild(img);ov.onclick=()=>ov.remove();
+  document.body.appendChild(ov);
+}
+
+function addPhoto(e,code,id,role){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev2){
+    const item=DB.getItems(code).find(i=>i.id===id);if(!item)return;
+    const photos=item.photos||[];
+    photos.push({data:ev2.target.result,name:file.name,addedAt:new Date().toISOString()});
+    DB.updateItem(code,id,{photos});
+    toast('Photo added!');showItemDetail(code,id,role);
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(code,id,idx,role){
+  const item=DB.getItems(code).find(i=>i.id===id);if(!item||!item.photos)return;
+  item.photos.splice(idx,1);
+  DB.updateItem(code,id,{photos:item.photos});
+  toast('Photo removed');showItemDetail(code,id,role);
+}
+
+function confirmDelete(code,id,role){
+  if(!confirm('Delete this action item? This cannot be undone.'))return;
+  DB.deleteItem(code,id);closeModal();toast('Item deleted');renderEvent(code,role);
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDIT ITEM MODAL
+// ═══════════════════════════════════════════════════════════
+function showEditModal(code,id,role){
+  const item=DB.getItems(code).find(i=>i.id===id);if(!item)return;
+  _selCats=getCats(item);
+  _modalOwner=item.owner||'';
+  _modalPriority=item.priority||'Medium';
+  _modalStatus=item.status||'Not Started';
+  const ev=DB.getEvent(code);
+  const pts=ev?.participants||[];
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Edit Item</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="submitEdit(event,'${code}','${id}','${role}')">
+        <div class="fg"><label class="lbl">Description *</label>
+          <input class="ctrl" name="description" value="${esc(item.description||'')}" required></div>
+        <div class="fg"><label class="lbl">Owner *</label>
+          ${pts.length
+            ?`<div class="owner-chips mb1">${pts.map(p=>`<div class="owner-chip modal-owner-chip${item.owner===p?' sel':''}" data-name="${esc(p)}" onclick="selectModalOwner(this)">${esc(p)}</div>`).join('')}</div>
+              <div id="modal_owner_err" class="val-err">Please select an owner</div>`
+            :`<input class="ctrl" id="modal_owner_text" value="${esc(item.owner||'')}" placeholder="Who is responsible?">`}
+        </div>
+        <div class="fg"><label class="lbl">Due Date</label>
+          <input class="ctrl" type="date" name="dueDate" value="${esc(item.dueDate||'')}"></div>
+        <div class="fg"><label class="lbl">Priority</label>
+          <div class="tap-row">
+            ${['Low','Medium','High'].map(p=>`<div class="tap-opt modal-priority-opt${(item.priority||'Medium')===p?' sel':''}" data-val="${p}" onclick="selectModalPriority(this)">${p}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Categories (select all that apply)</label>
+          <div id="catChips" class="cat-chips"></div>
+        </div>
+        <div class="fg"><label class="lbl">Status</label>
+          <div class="tap-row">
+            ${['Not Started','In Progress','Complete'].map(s=>`<div class="tap-opt modal-status-opt${(item.status||'Not Started')===s?' sel':''}" data-val="${s}" onclick="selectModalStatus(this)" style="font-size:12px;">${s}</div>`).join('')}
+          </div>
+        </div>
+        <div class="flex g2 mt2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="showItemDetail('${code}','${id}','${role}')">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="flex:1">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  `);
+  renderCatChips();
+}
+
+function submitEdit(e,code,id,role){
+  e.preventDefault();
+  const data=Object.fromEntries(new FormData(e.target));
+  const ev=DB.getEvent(code);
+  const pts=ev?.participants||[];
+  let owner;
+  if(pts.length){
+    owner=_modalOwner;
+    if(!owner){const err=document.getElementById('modal_owner_err');if(err)err.classList.add('show');return;}
+  } else {
+    owner=(document.getElementById('modal_owner_text')?.value||'').trim();
+    if(!owner){toast('Please enter an owner name');return;}
+  }
+  data.owner=owner;
+  data.priority=_modalPriority;
+  data.status=_modalStatus;
+  data.categories=[..._selCats];
+  delete data.category;
+  DB.updateItem(code,id,data);
+  closeModal();toast('Item updated!');renderEvent(code,role);
+}
+
+// ═══════════════════════════════════════════════════════════
+// A3 DOCUMENT
+// ═══════════════════════════════════════════════════════════
+function buildA3SectionHTML(code,role,ev){
+  // Only treat as "has A3" when the file was explicitly uploaded by the user.
+  // ev.a3.generated===true means it was auto-saved by Generate (old behavior) — treat as no upload.
+  const a3=(ev.a3&&!ev.a3.generated)?ev.a3:null;
+  const isXlsx=a3?.type?.includes('spreadsheetml')||a3?.name?.endsWith('.xlsx');
+  const icon=a3?(isXlsx?'📊':(a3.type==='application/pdf'?'📄':'🖼️')):'';
+  if(!a3){
+    return`<div class="card mb3"><div class="card-body">
+      <div class="sec-hdr mb2"><span class="sec-title">A3 Document</span></div>
+      <div class="a3-zone">
+        <div style="font-size:40px;margin-bottom:10px;">📋</div>
+        <p class="txt-sm txt-muted mb3">No A3 uploaded yet.<br>Generate a template, edit it in Excel,<br>then upload it using the Upload A3 button.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <button class="btn btn-gold btn-sm" onclick="generateA3Template('${esc(code)}')">📊 Generate A3 Template</button>
+          <label style="cursor:pointer;">
+            <div class="btn btn-navy btn-sm">📁 Upload A3</div>
+            <input type="file" accept=".xlsx,.pdf,image/*" class="hidden" onchange="uploadA3New(event,'${esc(code)}','${role}')">
+          </label>
+        </div>
+      </div>
+    </div></div>`;
+  }
+  return`<div class="card mb3"><div class="card-body">
+    <div class="sec-hdr mb2"><span class="sec-title">A3 Document</span></div>
+    <div class="a3-zone has-file">
+      <div class="a3-preview">
+        <div class="a3-icon">${icon}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="bold txt-sm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a3.name)}</div>
+          <div class="txt-xs txt-muted mt1">${fmtDate(a3.addedAt?.split('T')[0])} · Uploaded</div>
+        </div>
+      </div>
+    </div>
+    <div class="flex g2 mt3" style="flex-wrap:wrap;">
+      <button class="btn btn-navy btn-sm" onclick="openA3('${esc(code)}')">📥 Open A3</button>
+      <button class="btn btn-gold btn-sm" onclick="generateA3Template('${esc(code)}')">📊 New Template</button>
+      <label style="cursor:pointer;"><div class="btn btn-outline btn-sm">🔄 Replace A3</div>
+        <input type="file" accept=".xlsx,.pdf,image/*" class="hidden" onchange="replaceA3(event,'${esc(code)}','${role}')">
+      </label>
+      <button class="btn btn-outline btn-sm" style="border-color:var(--red);color:var(--red);" onclick="deleteA3('${esc(code)}','${role}')">🗑️ Delete A3</button>
+    </div>
+  </div></div>`;
+}
+
+function uploadA3New(e,code,role){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev2){
+    const data=ev2.target.result;
+    if(data.length>2*1024*1024){
+      if(!confirm('This file is large and may affect app performance. Consider saving a smaller version.\n\nUpload anyway?')){e.target.value='';return;}
+    }
+    const ev=DB.getEvent(code);if(!ev)return;
+    ev.a3={data,type:file.type,name:file.name,addedAt:new Date().toISOString(),generated:false};
+    DB.saveEvent(ev);
+    toast('A3 uploaded!');renderEvent(code,role);
+  };
+  reader.readAsDataURL(file);
+}
+
+function openA3(code){
+  const ev=DB.getEvent(code);
+  // Only open explicitly-uploaded A3s; ignore auto-saved generated entries
+  if(!ev?.a3||ev.a3.generated){
+    toast('No A3 uploaded yet. Generate a template, edit it, then upload it using the Upload A3 button.');
+    return;
+  }
+  const link=document.createElement('a');
+  link.href=ev.a3.data;
+  link.download=ev.a3.name||'A3-Document';
+  document.body.appendChild(link);link.click();link.remove();
+  toast('A3 downloaded!');
+}
+
+function replaceA3(e,code,role){
+  const file=e.target.files[0];if(!file)return;
+  if(!confirm(`Replace the current A3 with "${file.name}"?\n\nThe current version will be permanently deleted.`)){e.target.value='';return;}
+  const reader=new FileReader();
+  reader.onload=function(ev2){
+    const data=ev2.target.result;
+    if(data.length>2*1024*1024){
+      if(!confirm('This file is large and may affect app performance. Consider saving a smaller version.\n\nUpload anyway?')){e.target.value='';return;}
+    }
+    const ev=DB.getEvent(code);if(!ev)return;
+    ev.a3={data,type:file.type,name:file.name,addedAt:new Date().toISOString(),generated:false};
+    DB.saveEvent(ev);toast('A3 replaced!');renderEvent(code,role);
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteA3(code,role){
+  if(!confirm('Permanently delete the A3 document for this event?'))return;
+  const ev=DB.getEvent(code);if(!ev)return;
+  delete ev.a3;DB.saveEvent(ev);
+  toast('A3 deleted.');renderEvent(code,role);
+}
+
+async function saveNotes(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const area=document.getElementById('notesArea');
+  const notes=(area?area.value:'').trim();
+  ev.notes=notes;
+  DB.saveEvent(ev);
+  // Inject notes into uploaded xlsx A3 only (never into auto-generated entries)
+  const a3=ev.a3;
+  const isXlsx=a3&&!a3.generated&&(a3.type?.includes('spreadsheetml')||a3.name?.endsWith('.xlsx'));
+  if(!isXlsx){toast('Notes saved!');return;}
+  await injectMeetingNotesSheet(code,notes);
+}
+
+// ═══════════════════════════════════════════════════════════
+// INJECT MEETING NOTES SHEET into stored A3 workbook
+// ═══════════════════════════════════════════════════════════
+async function injectMeetingNotesSheet(code,notes){
+  // Ensure ExcelJS is available, loading it if needed
+  if(typeof ExcelJS==='undefined'){
+    await new Promise((res,rej)=>{
+      if(document.querySelector('script[src*="exceljs"]')){
+        // Script tag already exists but still loading — poll
+        let n=0;
+        const t=setInterval(()=>{
+          if(typeof ExcelJS!=='undefined'){clearInterval(t);res();}
+          else if(++n>50){clearInterval(t);rej(new Error('ExcelJS load timeout'));}
+        },200);
+        return;
+      }
+      toast('Loading Excel library…');
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+      s.onload=res;
+      s.onerror=()=>rej(new Error('ExcelJS load failed'));
+      document.head.appendChild(s);
+    });
+  }
+  try{
+    toast('Updating A3 workbook…');
+    const ev=DB.getEvent(code);if(!ev?.a3)return;
+    // Decode base64 data URL → Uint8Array
+    const base64=ev.a3.data.split(',')[1];
+    const binStr=atob(base64);
+    const bytes=new Uint8Array(binStr.length);
+    for(let i=0;i<binStr.length;i++)bytes[i]=binStr.charCodeAt(i);
+    // Load workbook
+    const wb=new ExcelJS.Workbook();
+    await wb.xlsx.load(bytes.buffer);
+    // Replace the existing Notes sheet so the update is always the last page
+    const existing=wb.getWorksheet('Notes');
+    if(existing)wb.removeWorksheet(existing.id);
+    // ── Rebuild Notes sheet — matches Sheet 8 template layout ─
+    const ws=wb.addWorksheet('Notes');
+    const APTOS='Aptos Narrow';
+    const NAVY='FF156082',WHITE='FFFFFFFF',LGRAY='FFF2F2F2',BLACK='FF000000';
+    const SHDR='FFD9E8F5',HDRTXT='FF1A2A3A';
+    const thin={style:'thin',color:{argb:'FFCCCCCC'}};
+    const tb={top:thin,bottom:thin,left:thin,right:thin};
+    const med={style:'medium',color:{argb:BLACK}};
+    const mb={top:med,bottom:med,left:med,right:med};
+    ws.pageSetup.paperSize=1;
+    ws.pageSetup.orientation='portrait';
+    ws.pageSetup.fitToPage=true;
+    ws.pageSetup.fitToWidth=1;
+    ws.pageSetup.fitToHeight=1;
+    ws.pageSetup.margins={left:0.5,right:0.5,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+    ws.pageSetup.printArea='A1:A42';
+    ws.getColumn(1).width=85;
+    // Row 1 — Title bar
+    ws.getRow(1).height=34;
+    {const c=ws.getCell(1,1);
+    c.value='KAIZEN NOTES';
+    c.font={bold:true,color:{argb:WHITE},size:16,name:APTOS};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+    c.alignment={vertical:'middle',horizontal:'center'};
+    c.border=mb;}
+    // Row 2 — Event name
+    ws.getRow(2).height=22;
+    {const c=ws.getCell(2,1);
+    c.value=ev.name||'Kaizen Event';
+    c.font={bold:true,size:12,name:APTOS,color:{argb:HDRTXT}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SHDR}};
+    c.alignment={vertical:'middle',horizontal:'center'};
+    c.border=tb;}
+    // Row 3 — Detail strip
+    ws.getRow(3).height=15;
+    {const c=ws.getCell(3,1);
+    c.value=`${ev.date?fmtDate(ev.date):'—'}   ·   ${ev.plant||'—'}   ·   Facilitator: ${ev.facilitator||'—'}   ·   Updated: ${todayStr()}`;
+    c.font={size:9,italic:true,name:APTOS,color:{argb:'FF666666'}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+    c.alignment={vertical:'middle',horizontal:'center'};
+    c.border=tb;}
+    // Row 4 — spacer
+    ws.getRow(4).height=10;
+    {const c=ws.getCell(4,1);
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+    c.border={left:thin,right:thin};}
+    // Row 5 — NOTES section header
+    ws.getRow(5).height=18;
+    {const c=ws.getCell(5,1);
+    c.value='NOTES';
+    c.font={bold:true,color:{argb:HDRTXT},size:10,name:APTOS};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SHDR}};
+    c.alignment={vertical:'middle',horizontal:'left',indent:2};
+    c.border=tb;}
+    // Rows 6-41 — 36 lined rows (pre-filled with saved notes, remainder blank)
+    const injectLines=notes.split('\n');
+    for(let i=0;i<36;i++){
+      const rr=6+i;
+      ws.getRow(rr).height=18;
+      const c=ws.getCell(rr,1);
+      c.value=i<injectLines.length?(injectLines[i]||''):'';
+      c.font={size:10,name:APTOS,color:{argb:BLACK}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+      c.alignment={vertical:'top',horizontal:'left',wrapText:true,indent:2};
+      c.border={bottom:{style:'hair',color:{argb:'FFCCCCCC'}},left:thin,right:thin};
+    }
+    // Solid bottom border on last content row
+    ws.getCell(41,1).border=tb;
+    // ── Re-encode workbook and save back ──────────────────
+    const newBuffer=await wb.xlsx.writeBuffer();
+    const newBlob=new Blob([newBuffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const newDataUrl=await new Promise((res,rej)=>{
+      const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;
+      fr.readAsDataURL(newBlob);
+    });
+    const ev2=DB.getEvent(code);if(!ev2?.a3)return;
+    ev2.a3.data=newDataUrl;
+    ev2.a3.notesUpdatedAt=new Date().toISOString();
+    DB.saveEvent(ev2);
+    toast('Notes saved & Notes sheet updated in A3!');
+  }catch(err){
+    console.error('[KZ] injectMeetingNotesSheet error:',err);
+    toast('Notes saved! (Could not update A3 — see console for details)');
+  }
+}
+
+async function generateA3Template(code){
+  // ── Lazy-load ExcelJS ────────────────────────────────────
+  if(typeof ExcelJS==='undefined'){
+    if(document.querySelector('script[src*="exceljs"]')){
+      setTimeout(()=>generateA3Template(code),400);return;
+    }
+    toast('Loading Excel library…');
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload=()=>generateA3Template(code);
+    s.onerror=()=>toast('Could not load Excel library. Check your connection.');
+    document.head.appendChild(s);return;
+  }
+
+  const ev=DB.getEvent(code);if(!ev)return;
+  const items=DB.getItems(code)||[];
+  const ranked=(ev.voting?.status==='locked'&&ev.voting?.ranked?.length)
+    ?ev.voting.ranked:(ev.opportunities||[]);
+  const kpis=(ev.kpis||[]).filter(k=>k.name||k.target);
+  const participants=ev.participants||[];
+  const notes=ev.notes||'';
+
+  // 6 monthly column headers starting from event month
+  const sd=ev.date?new Date(ev.date+'T12:00:00'):new Date();
+  const months=Array.from({length:6},(_,i)=>
+    new Date(sd.getFullYear(),sd.getMonth()+i,1)
+      .toLocaleDateString('en-US',{month:'short',year:'2-digit'}));
+
+  // ── Color & font constants ───────────────────────────────
+  const SBLUE ='FFBDD7EE'; // #BDD7EE — TAG section header blue (from Robert's file)
+  const WHITE ='FFFFFFFF';
+  const BLACK ='FF000000';
+  const LGRAY ='FFF2F2F2';
+  const DGRAY ='FF999999';
+  const GREEN ='FF00B050'; // scorecard legend
+  const YELLOW='FFFFFF00'; // scorecard legend
+  const RED   ='FFFF0000'; // scorecard legend
+  const AF    ='Aptos Narrow';
+
+  const thinBlk ={style:'thin',color:{argb:BLACK}};
+  const outerBrd={top:thinBlk,bottom:thinBlk,left:thinBlk,right:thinBlk};
+  const thinGray={style:'thin',color:{argb:'FFCCCCCC'}};
+
+  // ── WORKBOOK ─────────────────────────────────────────────
+  const wb=new ExcelJS.Workbook();
+  wb.creator=ev.facilitator||'TAG Manufacturing';
+  wb.created=new Date();
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 1: A3 — 21 columns (A-U), 11×17 landscape
+  // Matches Robert's TAG A3 layout exactly
+  // ══════════════════════════════════════════════════════════
+  const ws1=wb.addWorksheet('A3',{
+    pageSetup:{
+      paperSize:3,           // 11×17 Tabloid/Ledger
+      orientation:'landscape',
+      fitToPage:true,
+      fitToWidth:1,
+      fitToHeight:1,
+      printArea:'A1:U44'
+    }
+  });
+  ws1.pageSetup.margins={left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3};
+
+  // Column widths: A-J = left side, K-U = right side
+  for(let c=1;c<=10;c++) ws1.getColumn(c).width=9;    // A-J
+  ws1.getColumn(11).width=9; ws1.getColumn(12).width=9; ws1.getColumn(13).width=9; // K-M metric
+  ws1.getColumn(14).width=7;  // N — scorecard current
+  ws1.getColumn(15).width=8;  // O — TAG logo col + scorecard target
+  ws1.getColumn(16).width=10; // P — Date Created header + scorecard month 1
+  ws1.getColumn(17).width=8;  // Q — date value + scorecard month 2
+  ws1.getColumn(18).width=10; // R — Author header + scorecard month 3
+  ws1.getColumn(19).width=8;  // S — author value + scorecard month 4
+  ws1.getColumn(20).width=12; // T — Revision Date header + scorecard month 5
+  ws1.getColumn(21).width=8;  // U — rev date value + scorecard month 6
+
+  // Row heights
+  ws1.getRow(1).height=18; // header row 1
+  ws1.getRow(2).height=18; // header row 2
+  for(let r=3;r<=44;r++) ws1.getRow(r).height=14;
+  for(let r=34;r<=43;r++) ws1.getRow(r).height=15; // scorecard KPI rows — compact
+  ws1.getRow(44).height=20; // legend — enough height to show text on one line
+  // Hide rows 45-100 so A3 ends cleanly at the legend row
+  for(let r=45;r<=100;r++) ws1.getRow(r).hidden=true;
+
+  // ── ws1 HELPERS ──────────────────────────────────────────
+  // Section header: SBLUE bg, black bold 12pt, outer border only
+  function sHdr(r1,c1,r2,c2,label){
+    for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++){
+      ws1.getCell(r,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+      ws1.getCell(r,c).border=outerBrd;
+    }
+    ws1.mergeCells(r1,c1,r2,c2);
+    const cell=ws1.getCell(r1,c1);
+    cell.value=label;
+    cell.font={name:AF,size:12,bold:true,color:{argb:BLACK}};
+    cell.alignment={horizontal:'left',vertical:'middle',indent:1};
+  }
+
+  // Content area: white bg, outer border ONLY (no internal lines) — for paste areas
+  function cArea(r1,c1,r2,c2,text){
+    for(let r=r1;r<=r2;r++) for(let c=c1;c<=c2;c++){
+      const cell=ws1.getCell(r,c);
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+      const brd={};
+      if(r===r1) brd.top=thinBlk;
+      if(r===r2) brd.bottom=thinBlk;
+      if(c===c1) brd.left=thinBlk;
+      if(c===c2) brd.right=thinBlk;
+      if(Object.keys(brd).length) cell.border=brd;
+    }
+    ws1.mergeCells(r1,c1,r2,c2);
+    const cell=ws1.getCell(r1,c1);
+    cell.value=text||'';
+    cell.font={name:AF,size:11,color:{argb:BLACK}};
+    cell.alignment={horizontal:'left',vertical:'top',wrapText:true,indent:1};
+  }
+
+  // ── HEADER ROWS 1-2 ──────────────────────────────────────
+  // Layout: A1:O2 (title, full width to col O)  │  P1:Q1  │  R1:S1  │  T1:U1
+  //         Event Name (bold 20pt)               │ Date    │ Author  │ Revision
+  //                                              │ P2:Q2   │ R2:S2   │ T2:U2
+
+  // A1:O2 — event title, spans both header rows through col O, outer border only
+  for(let c=1;c<=15;c++){
+    const b1={top:thinBlk};
+    if(c===1)b1.left=thinBlk; if(c===15)b1.right=thinBlk;
+    ws1.getCell(1,c).border=b1;
+    const b2={bottom:thinBlk};
+    if(c===1)b2.left=thinBlk; if(c===15)b2.right=thinBlk;
+    ws1.getCell(2,c).border=b2;
+  }
+  ws1.mergeCells(1,1,2,15);
+  {const c=ws1.getCell(1,1);
+  c.value=ev.name||'Kaizen Event';
+  c.font={name:AF,size:20,bold:true,color:{argb:BLACK}};
+  c.alignment={horizontal:'left',vertical:'middle',indent:1};}
+
+  // P1:U2 — header metadata grid (cols 16-21), thin borders before merging
+  for(let r=1;r<=2;r++) for(let c=16;c<=21;c++)
+    ws1.getCell(r,c).border=outerBrd;
+
+  // P1:Q1 (cols 16-17) — "Date Created" column label
+  ws1.mergeCells(1,16,1,17);
+  {const c=ws1.getCell(1,16);
+  c.value='Date Created';
+  c.font={name:AF,size:11,bold:true,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+  // R1:S1 (cols 18-19) — "Author" column label
+  ws1.mergeCells(1,18,1,19);
+  {const c=ws1.getCell(1,18);
+  c.value='Author';
+  c.font={name:AF,size:11,bold:true,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+  // T1:U1 (cols 20-21) — "Revision Date" column label
+  ws1.mergeCells(1,20,1,21);
+  {const c=ws1.getCell(1,20);
+  c.value='Revision Date';
+  c.font={name:AF,size:11,bold:true,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+  // P2:Q2 (cols 16-17) — event date value
+  ws1.mergeCells(2,16,2,17);
+  {const c=ws1.getCell(2,16);
+  c.value=ev.date?fmtDate(ev.date):'';
+  c.font={name:AF,size:11,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+  // R2:S2 (cols 18-19) — facilitator name
+  ws1.mergeCells(2,18,2,19);
+  {const c=ws1.getCell(2,18);
+  c.value=ev.facilitator||'';
+  c.font={name:AF,size:11,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+  // T2:U2 (cols 20-21) — today's date (revision date)
+  ws1.mergeCells(2,20,2,21);
+  {const c=ws1.getCell(2,20);
+  c.value=todayStr();
+  c.font={name:AF,size:11,color:{argb:BLACK}};
+  c.alignment={horizontal:'center',vertical:'middle'};}
+
+
+  // ── LEFT SIDE: Cols A-J (1-10) ───────────────────────────
+  // 1) Project Description
+  sHdr(3,1,3,10,'1) Project Description');
+  cArea(4,1,8,10,ev.problem||'');
+
+  // 2) Current State
+  sHdr(9,1,9,10,'2) Current State');
+  cArea(10,1,23,10,'');
+
+  // 3) Target
+  sHdr(24,1,24,10,'3) Target');
+  cArea(25,1,28,10,'');
+
+  // 4) Analysis — empty (notes go to Notes sheet only)
+  sHdr(29,1,29,10,'4) Analysis');
+  cArea(30,1,43,10,'');
+
+  // ── RIGHT SIDE: Cols K-U (11-21) ─────────────────────────
+  // 5) Opportunities — clear paste area, NO internal lines
+  sHdr(3,11,3,21,'5) Opportunities');
+  cArea(4,11,16,21,'');
+
+  // 6) Action Items — clear paste area, NO internal lines
+  sHdr(17,11,17,21,'6) Action Items');
+  cArea(18,11,31,21,'');
+
+  // 7) Score Card
+  sHdr(32,11,32,21,'7) Score card');
+
+  // Row 33 — scorecard column headers (SBLUE bg, black bold)
+  // K-M: Metric/KPI(3), N: Current(1), O: Target(1), P-U: 6 months
+  const scHdrs=[
+    [11,13,'Metric / KPI'],
+    [14,14,'Current'],
+    [15,15,'Target'],
+    [16,16,months[0]||'Mo 1'],
+    [17,17,months[1]||'Mo 2'],
+    [18,18,months[2]||'Mo 3'],
+    [19,19,months[3]||'Mo 4'],
+    [20,20,months[4]||'Mo 5'],
+    [21,21,months[5]||'Mo 6'],
+  ];
+  scHdrs.forEach(([c1,c2,text])=>{
+    for(let c=c1;c<=c2;c++){
+      ws1.getCell(33,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+      ws1.getCell(33,c).border=outerBrd;
+    }
+    if(c1!==c2) ws1.mergeCells(33,c1,33,c2);
+    const cell=ws1.getCell(33,c1);
+    cell.value=text;
+    cell.font={name:AF,size:10,bold:true,color:{argb:BLACK}};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+  });
+
+  // Rows 34-43 — KPI data rows (10 rows, compact, no text wrap)
+  for(let i=0;i<10;i++){
+    const rr=34+i;
+    const kpi=kpis[i];
+    const bg=i%2===0?WHITE:LGRAY;
+    // K-M: metric name (3 cols merged)
+    for(let c=11;c<=13;c++){
+      ws1.getCell(rr,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      ws1.getCell(rr,c).border=outerBrd;
+    }
+    ws1.mergeCells(rr,11,rr,13);
+    {const cell=ws1.getCell(rr,11);
+    cell.value=kpi?kpi.name||'':'';
+    cell.font={name:AF,size:10,color:{argb:BLACK}};
+    cell.alignment={horizontal:'left',vertical:'middle',indent:1};}
+    // N: current (blank — user fills)
+    {const c=ws1.getCell(rr,14);
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+    c.border=outerBrd;
+    c.font={name:AF,size:10};
+    c.alignment={horizontal:'center',vertical:'middle'};}
+    // O: target
+    {const c=ws1.getCell(rr,15);
+    c.value=kpi?kpi.target||'':'';
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+    c.border=outerBrd;
+    c.font={name:AF,size:10,color:{argb:BLACK}};
+    c.alignment={horizontal:'center',vertical:'middle'};}
+    // P-U: 6 monthly columns (blank)
+    for(let mc=16;mc<=21;mc++){
+      const c=ws1.getCell(rr,mc);
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      c.border=outerBrd;
+      c.font={name:AF,size:10};
+      c.alignment={horizontal:'center',vertical:'middle'};
+    }
+  }
+
+  // Row 44 — Legend (row height 20 set above, no text wrap so text fits one line)
+  // K44:M44 — "Better than Goal" — green #00B050
+  for(let c=11;c<=13;c++){
+    ws1.getCell(44,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:GREEN}};
+    ws1.getCell(44,c).border=outerBrd;
+  }
+  ws1.mergeCells(44,11,44,13);
+  {const cell=ws1.getCell(44,11);
+  cell.value='Better than Goal';
+  cell.font={name:AF,size:9,bold:true,color:{argb:BLACK}};
+  cell.alignment={horizontal:'center',vertical:'middle',wrapText:false};}
+
+  // N44:Q44 — "Better than prev/Worse than goal" — yellow #FFFF00 (extended to Q)
+  for(let c=14;c<=17;c++){
+    ws1.getCell(44,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:YELLOW}};
+    ws1.getCell(44,c).border=outerBrd;
+  }
+  ws1.mergeCells(44,14,44,17);
+  {const cell=ws1.getCell(44,14);
+  cell.value='Better than prev/Worse than goal';
+  cell.font={name:AF,size:9,bold:true,color:{argb:BLACK}};
+  cell.alignment={horizontal:'center',vertical:'middle',wrapText:false};}
+
+  // R44:U44 — "Worse than prev/Worse than goal" — red #FF0000
+  for(let c=18;c<=21;c++){
+    ws1.getCell(44,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:RED}};
+    ws1.getCell(44,c).border=outerBrd;
+  }
+  ws1.mergeCells(44,18,44,21);
+  {const cell=ws1.getCell(44,18);
+  cell.value='Worse than prev/Worse than goal';
+  cell.font={name:AF,size:9,bold:true,color:{argb:BLACK}};
+  cell.alignment={horizontal:'center',vertical:'middle',wrapText:false};}
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 2: Data
+  // ══════════════════════════════════════════════════════════
+  const ws2=wb.addWorksheet('Data');
+  ws2.getRow(1).height=24;
+  ws2.mergeCells(1,1,1,3);
+  {const c=ws2.getCell(1,1);
+  c.value=`${ev.name||'Kaizen'} — Data & Charts`;
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:12,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws2.getColumn(1).width=40;ws2.getColumn(2).width=18;ws2.getColumn(3).width=24;
+  ws2.getRow(2).height=16;
+  ['Description','Total Time','Number of Occurrences'].forEach((h,i)=>{
+    const c=ws2.getCell(2,i+1);
+    c.value=h;c.font={bold:true,color:{argb:BLACK},size:11,name:AF};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+    c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;
+  });
+  for(let r=3;r<=22;r++){ws2.getRow(r).height=15;
+    for(let c=1;c<=3;c++){
+      ws2.getCell(r,c).fill={type:'pattern',pattern:'solid',fgColor:{argb:r%2===0?LGRAY:WHITE}};
+      ws2.getCell(r,c).border=outerBrd;
+      ws2.getCell(r,c).font={name:AF,size:11};
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 3: Action Items (pre-filled from event data)
+  // ══════════════════════════════════════════════════════════
+  const ws3=wb.addWorksheet('Action Items');
+  ws3.pageSetup.paperSize=1;ws3.pageSetup.orientation='landscape';
+  ws3.pageSetup.fitToPage=true;ws3.pageSetup.fitToWidth=1;ws3.pageSetup.fitToHeight=1;
+  ws3.getColumn(1).width=40;ws3.getColumn(2).width=18;ws3.getColumn(3).width=14;
+  ws3.getColumn(4).width=16;
+  ws3.getRow(1).height=24;
+  ws3.mergeCells(1,1,1,4);
+  {const c=ws3.getCell(1,1);
+  c.value=`${ev.name||'Kaizen Event'} — Action Items`;
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:12,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws3.getRow(2).height=16;
+  ['Activity','Responsible','Due Date','Status'].forEach((h,i)=>{
+    const c=ws3.getCell(2,i+1);
+    c.value=h;c.font={bold:true,color:{argb:BLACK},size:11,name:AF};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+    c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;
+  });
+  const aiList=items.length?items:Array(8).fill(null);
+  aiList.forEach((item,i)=>{
+    const rr=3+i;ws3.getRow(rr).height=18;
+    const bg=i%2===0?WHITE:LGRAY;
+    [item?.description||'',item?.owner||'',
+     item?.dueDate?fmtDate(item.dueDate):'',item?.status||''].forEach((v,j)=>{
+      const cell=ws3.getCell(rr,j+1);
+      cell.value=v;cell.font={size:11,name:AF,color:{argb:BLACK}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:j===0?'left':'center',
+        indent:j===0?1:0,wrapText:j===0};
+      cell.border=outerBrd;
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 4: Pics
+  // ══════════════════════════════════════════════════════════
+  const ws4=wb.addWorksheet('Pics');
+  ws4.getRow(1).height=28;
+  ws4.mergeCells(1,1,1,8);
+  {const c=ws4.getCell(1,1);
+  c.value='Insert before/after photos here';
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:14,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws4.getRow(2).height=18;
+  ws4.mergeCells(2,1,2,4);
+  {const c=ws4.getCell(2,1);
+  c.value='BEFORE';c.font={bold:true,size:12,name:AF};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+  c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;}
+  ws4.mergeCells(2,5,2,8);
+  {const c=ws4.getCell(2,5);
+  c.value='AFTER';c.font={bold:true,size:12,name:AF};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+  c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;}
+  ws4.mergeCells(3,1,25,4);
+  {const c=ws4.getCell(3,1);
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};c.border=outerBrd;
+  c.value='(Insert BEFORE photo here)';
+  c.font={italic:true,color:{argb:DGRAY},size:10,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};}
+  ws4.mergeCells(3,5,25,8);
+  {const c=ws4.getCell(3,5);
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};c.border=outerBrd;
+  c.value='(Insert AFTER photo here)';
+  c.font={italic:true,color:{argb:DGRAY},size:10,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};}
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 5: Fishbone
+  // ══════════════════════════════════════════════════════════
+  const ws5=wb.addWorksheet('Fishbone');
+  ws5.getRow(1).height=28;
+  ws5.mergeCells(1,1,1,12);
+  {const c=ws5.getCell(1,1);
+  c.value='Insert fishbone diagram here';
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:14,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws5.getRow(2).height=20;
+  ws5.mergeCells(2,1,2,12);
+  {const c=ws5.getCell(2,1);
+  c.value='Use Insert > Image or draw with Excel shapes to add your fishbone diagram';
+  c.font={italic:true,size:10,color:{argb:DGRAY},name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};}
+  ['Man / People','Machine / Equipment','Method / Process',
+   'Material','Measurement','Environment'].forEach((cat,i)=>{
+    const rr=4+i*4;ws5.getRow(rr).height=16;
+    ws5.mergeCells(rr,1,rr,2);
+    {const c=ws5.getCell(rr,1);
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};c.border=outerBrd;
+    c.value=cat;c.font={bold:true,color:{argb:BLACK},size:10,name:AF};
+    c.alignment={vertical:'middle',horizontal:'left',indent:1};}
+    ws5.mergeCells(rr,3,rr,12);
+    {const c=ws5.getCell(rr,3);
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};c.border=outerBrd;}
+    for(let ri=1;ri<=3;ri++){ws5.getRow(rr+ri).height=14;
+      for(let col=1;col<=12;col++){
+        ws5.getCell(rr+ri,col).fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+        ws5.getCell(rr+ri,col).border=outerBrd;
+      }
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 6: Idea List (opportunities + per-participant cols)
+  // ══════════════════════════════════════════════════════════
+  const ws6=wb.addWorksheet('Idea List');
+  const ncols6=Math.max(2+participants.length,3);
+  ws6.getRow(1).height=22;
+  ws6.mergeCells(1,1,1,ncols6);
+  {const c=ws6.getCell(1,1);
+  c.value=`${ev.name||'Kaizen'} — Idea / Opportunity List`;
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:12,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws6.getColumn(1).width=6;ws6.getColumn(2).width=42;
+  participants.forEach((_,i)=>ws6.getColumn(3+i).width=14);
+  ws6.getRow(2).height=16;
+  ['Rank','Opportunity',...participants].forEach((h,i)=>{
+    const c=ws6.getCell(2,i+1);
+    c.value=h;c.font={bold:true,color:{argb:BLACK},size:11,name:AF};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+    c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;
+  });
+  const ideaList=ranked.length?ranked:Array(5).fill(null);
+  ideaList.forEach((op,i)=>{
+    const rr=3+i;ws6.getRow(rr).height=16;
+    const bg=i%2===0?WHITE:LGRAY;
+    [op?i+1:'',op?op.description||'':'',...participants.map(()=>'')].forEach((v,j)=>{
+      const cell=ws6.getCell(rr,j+1);
+      cell.value=v;cell.font={size:11,name:AF,color:{argb:BLACK}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:j===1?'left':'center',indent:j===1?1:0};
+      cell.border=outerBrd;
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 7: MFG Lead Time
+  // ══════════════════════════════════════════════════════════
+  const ws7=wb.addWorksheet('MFG Lead Time');
+  ws7.pageSetup.paperSize=1;ws7.pageSetup.orientation='landscape';
+  ws7.pageSetup.fitToPage=true;ws7.pageSetup.fitToWidth=1;ws7.pageSetup.fitToHeight=1;
+  ws7.getColumn(1).width=16;for(let i=2;i<=12;i++)ws7.getColumn(i).width=9;
+  ws7.getRow(1).height=22;
+  ws7.mergeCells(1,1,1,12);
+  {const c=ws7.getCell(1,1);
+  c.value='Manufacturing Lead Time Tracker';
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.font={bold:true,color:{argb:BLACK},size:12,name:AF};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  ws7.getRow(2).height=16;
+  ['Category','-10 Wks','-9 Wks','-8 Wks','-7 Wks','-6 Wks','-5 Wks',
+   '-4 Wks','-3 Wks','-2 Wks','-1 Wk','Ship Date'].forEach((h,i)=>{
+    const c=ws7.getCell(2,i+1);
+    c.value=h;c.font={bold:true,color:{argb:BLACK},size:11,name:AF};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+    c.alignment={vertical:'middle',horizontal:'center'};c.border=outerBrd;
+  });
+  ['Loaders','Rakes','Forks','Couplers'].forEach((cat,i)=>{
+    const rr=3+i;ws7.getRow(rr).height=18;
+    const bg=i%2===0?WHITE:LGRAY;
+    {const c=ws7.getCell(rr,1);
+    c.value=cat;c.font={bold:true,size:11,name:AF,color:{argb:BLACK}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+    c.alignment={vertical:'middle',horizontal:'left',indent:1};
+    c.border=outerBrd;}
+    for(let col=2;col<=12;col++){
+      ws7.getCell(rr,col).fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      ws7.getCell(rr,col).border=outerBrd;
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 8: Notes (Letter portrait — dedicated notes page)
+  // ══════════════════════════════════════════════════════════
+  const ws8=wb.addWorksheet('Notes');
+  ws8.pageSetup.paperSize=1;
+  ws8.pageSetup.orientation='portrait';
+  ws8.pageSetup.fitToPage=true;
+  ws8.pageSetup.fitToWidth=1;
+  ws8.pageSetup.fitToHeight=1;
+  ws8.pageSetup.margins={left:0.5,right:0.5,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+  ws8.pageSetup.printArea='A1:A42';
+  ws8.getColumn(1).width=85;
+  // Row 1 — Title
+  ws8.getRow(1).height=34;
+  {const c=ws8.getCell(1,1);
+  c.value='KAIZEN NOTES';
+  c.font={bold:true,color:{argb:BLACK},size:16,name:AF};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  // Row 2 — Event name
+  ws8.getRow(2).height=22;
+  {const c=ws8.getCell(2,1);
+  c.value=ev.name||'Kaizen Event';
+  c.font={bold:true,size:12,name:AF,color:{argb:BLACK}};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  // Row 3 — Detail strip
+  ws8.getRow(3).height=15;
+  {const c=ws8.getCell(3,1);
+  c.value=`${ev.date?fmtDate(ev.date):'—'}   ·   ${ev.plant||'—'}   ·   Facilitator: ${ev.facilitator||'—'}`;
+  c.font={size:9,italic:true,name:AF,color:{argb:'FF666666'}};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:LGRAY}};
+  c.alignment={vertical:'middle',horizontal:'center'};
+  c.border=outerBrd;}
+  // Row 4 — spacer
+  ws8.getRow(4).height=10;
+  {const c=ws8.getCell(4,1);
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+  c.border={left:thinGray,right:thinGray};}
+  // Row 5 — NOTES section header
+  ws8.getRow(5).height=18;
+  {const c=ws8.getCell(5,1);
+  c.value='NOTES';
+  c.font={bold:true,color:{argb:BLACK},size:10,name:AF};
+  c.fill={type:'pattern',pattern:'solid',fgColor:{argb:SBLUE}};
+  c.alignment={vertical:'middle',horizontal:'left',indent:2};
+  c.border=outerBrd;}
+  // Rows 6-41 — 36 lined rows pre-filled with notes
+  const noteLines=notes.split('\n');
+  for(let i=0;i<36;i++){
+    const rr=6+i;
+    ws8.getRow(rr).height=18;
+    const c=ws8.getCell(rr,1);
+    c.value=i<noteLines.length?(noteLines[i]||''):'';
+    c.font={size:10,name:AF,color:{argb:BLACK}};
+    c.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+    c.alignment={vertical:'top',horizontal:'left',wrapText:true,indent:2};
+    c.border={bottom:{style:'hair',color:{argb:'FFCCCCCC'}},left:thinGray,right:thinGray};
+  }
+  ws8.getCell(41,1).border=outerBrd;
+
+  // ── Download & store ─────────────────────────────────────
+  try{
+    toast('Building workbook…');
+    const buffer=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    // Trigger browser download
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    const safeName=(ev.name||'Kaizen').replace(/[\\/:*?"<>|]/g,'').trim().replace(/\s+/g,'-').slice(0,40);
+    const dateStr=(ev.date||todayStr()).replace(/-/g,'');
+    link.download=`${safeName}-A3-${dateStr}.xlsx`;
+    document.body.appendChild(link);link.click();document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast('A3 template downloaded! Open it in Excel, fill it out, then upload it using the Upload A3 button.');
+  }catch(err){
+    console.error('A3 generation error:',err);
+    toast('Error generating A3. Check the console for details.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT ACTION ITEMS  (Letter 8.5×11 landscape)
+// ═══════════════════════════════════════════════════════════
+async function exportActionItems(code){
+  if(typeof ExcelJS==='undefined'){
+    if(document.querySelector('script[src*="exceljs"]')){setTimeout(()=>exportActionItems(code),400);return;}
+    toast('Loading Excel library…');
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload=()=>exportActionItems(code);
+    s.onerror=()=>toast('Could not load Excel library. Check your connection.');
+    document.head.appendChild(s);return;
+  }
+  const ev=DB.getEvent(code);if(!ev)return;
+  const items=DB.getItems(code)||[];
+
+  const NAVY='FF156082',WHITE='FFFFFFFF',LGRAY='FFF2F2F2',BLACK='FF000000';
+  const thin={style:'thin',color:{argb:'FFCCCCCC'}};
+  const tb={top:thin,bottom:thin,left:thin,right:thin};
+  const APTOS='Aptos Narrow',SZ=11;
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Action Items',{
+    pageSetup:{
+      paperSize:1,         // Letter 8.5×11
+      orientation:'landscape',
+      fitToPage:true,
+      fitToWidth:1,
+      fitToHeight:0
+    }
+  });
+  ws.pageSetup.margins={left:0.5,right:0.5,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+
+  // Column widths (7 columns, fits landscape letter)
+  ws.getColumn(1).width=36; // Activity
+  ws.getColumn(2).width=16; // Responsible
+  ws.getColumn(3).width=12; // Due Date
+  ws.getColumn(4).width=10; // Priority
+  ws.getColumn(5).width=14; // Status
+  ws.getColumn(6).width=26; // Notes
+  ws.getColumn(7).width=14; // Completed
+
+  // Row 1 — Event name
+  ws.getRow(1).height=20;
+  ws.mergeCells(1,1,1,7);
+  const r1c=ws.getCell(1,1);
+  r1c.value=ev.name||'Kaizen Event';
+  r1c.font={bold:true,size:SZ+2,name:APTOS};
+  r1c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 2 — Date
+  ws.getRow(2).height=16;
+  ws.mergeCells(2,1,2,7);
+  const r2c=ws.getCell(2,1);
+  r2c.value='Date: '+(ev.date?fmtDate(ev.date):'—');
+  r2c.font={size:SZ,name:APTOS};
+  r2c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 3 — Facilitator
+  ws.getRow(3).height=16;
+  ws.mergeCells(3,1,3,7);
+  const r3c=ws.getCell(3,1);
+  r3c.value='Facilitator: '+(ev.facilitator||'—');
+  r3c.font={size:SZ,name:APTOS};
+  r3c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 4 — blank spacer
+  ws.getRow(4).height=8;
+
+  // Row 5 — Header
+  ws.getRow(5).height=22;
+  ['Activity','Responsible','Due Date','Priority','Status','Notes','Completed'].forEach((h,i)=>{
+    const cell=ws.getCell(5,i+1);
+    cell.value=h;
+    cell.font={bold:true,color:{argb:WHITE},size:SZ,name:APTOS};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+    cell.alignment={vertical:'middle',horizontal:i===0||i===5?'left':'center',wrapText:true,indent:i===0||i===5?1:0};
+    cell.border=tb;
+  });
+
+  // Freeze header row
+  ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+
+  // Data rows
+  const rows=items.length?items:[null];
+  rows.forEach((item,i)=>{
+    const rr=6+i;
+    ws.getRow(rr).height=18;
+    const bg=i%2===0?WHITE:LGRAY;
+    const vals=[
+      item?item.description||'':'',
+      item?item.owner||'':'',
+      item&&item.dueDate?fmtDate(item.dueDate):'',
+      item?item.priority||'':'',
+      item?item.status||'':'',
+      item?item.comment||'':'',
+      '' // Completed — blank for user to fill
+    ];
+    vals.forEach((v,j)=>{
+      const cell=ws.getCell(rr,j+1);
+      cell.value=v;
+      cell.font={size:SZ,name:APTOS};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:j===0||j===5?'left':'center',wrapText:j===0||j===5,indent:j===0||j===5?1:0};
+      cell.border=tb;
+    });
+  });
+
+  try{
+    toast('Building Action Items export…');
+    const buffer=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    const safeName=(ev.name||'Kaizen').replace(/[\\/:*?"<>|]/g,'').trim().replace(/\s+/g,'-').slice(0,40);
+    const dateStr=todayStr().replace(/-/g,'');
+    link.download=`${safeName}-ActionItems-${dateStr}.xlsx`;
+    document.body.appendChild(link);link.click();document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast('Action Items exported!');
+  }catch(err){
+    console.error('Action Items export error:',err);
+    toast('Error exporting Action Items. Check console.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT OPPORTUNITY LIST  (Letter 8.5×11 portrait)
+// ═══════════════════════════════════════════════════════════
+async function exportOpportunityList(code){
+  if(typeof ExcelJS==='undefined'){
+    if(document.querySelector('script[src*="exceljs"]')){setTimeout(()=>exportOpportunityList(code),400);return;}
+    toast('Loading Excel library…');
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    s.onload=()=>exportOpportunityList(code);
+    s.onerror=()=>toast('Could not load Excel library. Check your connection.');
+    document.head.appendChild(s);return;
+  }
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ops=ev.opportunities||[];
+  const facilitator=ev.facilitator||'your facilitator';
+  const N=ops.length;
+
+  const NAVY='FF156082',WHITE='FFFFFFFF',LGRAY='FFF2F2F2',BLACK='FF000000';
+  const thin={style:'thin',color:{argb:'FFCCCCCC'}};
+  const tb={top:thin,bottom:thin,left:thin,right:thin};
+  const APTOS='Aptos Narrow',SZ=11;
+
+  const wb=new ExcelJS.Workbook();
+  const ws=wb.addWorksheet('Opportunity Ranking',{
+    pageSetup:{
+      paperSize:1,         // Letter 8.5×11
+      orientation:'portrait',
+      fitToPage:true,
+      fitToWidth:1,
+      fitToHeight:0
+    }
+  });
+  ws.pageSetup.margins={left:0.5,right:0.5,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+
+  ws.getColumn(1).width=10;  // Rank — narrow
+  ws.getColumn(2).width=62;  // Opportunity — wide
+
+  // Row 1 — Event name
+  ws.getRow(1).height=20;
+  ws.mergeCells(1,1,1,2);
+  const r1c=ws.getCell(1,1);
+  r1c.value=ev.name||'Kaizen Event';
+  r1c.font={bold:true,size:SZ+2,name:APTOS};
+  r1c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 2 — Date
+  ws.getRow(2).height=16;
+  ws.mergeCells(2,1,2,2);
+  const r2c=ws.getCell(2,1);
+  r2c.value='Date: '+(ev.date?fmtDate(ev.date):'—');
+  r2c.font={size:SZ,name:APTOS};
+  r2c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 3 — Facilitator
+  ws.getRow(3).height=16;
+  ws.mergeCells(3,1,3,2);
+  const r3c=ws.getCell(3,1);
+  r3c.value='Facilitator: '+facilitator;
+  r3c.font={size:SZ,name:APTOS};
+  r3c.alignment={vertical:'middle',horizontal:'left',indent:1};
+
+  // Row 4 — blank spacer
+  ws.getRow(4).height=8;
+
+  // Row 5 — Yellow instruction cell
+  const instrH=N>5?56:44;
+  ws.getRow(5).height=instrH;
+  ws.mergeCells(5,1,5,2);
+  const noteCell=ws.getCell(5,1);
+  noteCell.value=`Please rank each opportunity 1 being the most important to you to fix. Fill out 1 through ${N||'N'} and return to ${facilitator}.`;
+  noteCell.font={size:SZ,name:APTOS,italic:true};
+  noteCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF99'}};
+  noteCell.alignment={vertical:'middle',horizontal:'left',wrapText:true,indent:1};
+  noteCell.border=tb;
+
+  // Row 6 — blank spacer
+  ws.getRow(6).height=8;
+
+  // Row 7 — Header
+  ws.getRow(7).height=22;
+  ['Rank','Opportunity'].forEach((h,i)=>{
+    const cell=ws.getCell(7,i+1);
+    cell.value=h;
+    cell.font={bold:true,color:{argb:WHITE},size:SZ,name:APTOS};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:NAVY}};
+    cell.alignment={vertical:'middle',horizontal:i===0?'center':'left',indent:i===0?0:1};
+    cell.border=tb;
+  });
+
+  // Data rows
+  if(ops.length===0){
+    ws.getRow(8).height=18;
+    ['','(No opportunities added yet)'].forEach((v,j)=>{
+      const cell=ws.getCell(8,j+1);
+      cell.value=v;cell.font={size:SZ,name:APTOS,italic:true,color:{argb:'FF999999'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:WHITE}};
+      cell.alignment={vertical:'middle',horizontal:j===0?'center':'left',indent:j===0?0:1};
+      cell.border=tb;
+    });
+  } else {
+    ops.forEach((op,i)=>{
+      const rr=8+i;
+      ws.getRow(rr).height=22;
+      const bg=i%2===0?WHITE:LGRAY;
+      ['',(op?op.description||'':'')].forEach((v,j)=>{
+        const cell=ws.getCell(rr,j+1);
+        cell.value=v;
+        cell.font={size:SZ,name:APTOS};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+        cell.alignment={vertical:'middle',horizontal:j===0?'center':'left',wrapText:j===1,indent:j===0?0:1};
+        cell.border=tb;
+      });
+    });
+  }
+
+  try{
+    toast('Building Opportunity List export…');
+    const buffer=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buffer],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    const safeName=(ev.name||'Kaizen').replace(/[\\/:*?"<>|]/g,'').trim().replace(/\s+/g,'-').slice(0,40);
+    const dateStr=todayStr().replace(/-/g,'');
+    link.download=`${safeName}-OpportunityRanking-${dateStr}.xlsx`;
+    document.body.appendChild(link);link.click();document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast('Opportunity List exported!');
+  }catch(err){
+    console.error('Opportunity List export error:',err);
+    toast('Error exporting Opportunity List. Check console.');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENT INFO MODAL (admin)
+// ═══════════════════════════════════════════════════════════
+function showInfoModal(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const kpis=ev.kpis?.length?ev.kpis:[{name:ev.hoshin||'',target:ev.targetMetric||''}];
+  const rows=[
+    ['Event Name',ev.name],['Plant / Area',ev.plant],['Date',fmtDate(ev.date)],
+    ['Facilitator',ev.facilitator||'—'],
+    ['Problem Statement',ev.problem||'—'],
+    ['Current Metric',ev.currentMetric||'—']
+  ];
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Event Details</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      ${rows.map(([l,v])=>`<div class="mb3"><div class="lbl">${esc(l)}</div><div class="bold">${esc(v)}</div></div><hr class="divider" style="margin:8px 0;">`).join('')}
+      <div class="mb3">
+        <div class="lbl">KPI Connections</div>
+        ${kpis.map(k=>`
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:6px;margin-top:6px;">
+            <div style="background:var(--gray-100);border-radius:6px;padding:8px 10px;">
+              <div class="txt-sm bold">${esc(k.name||'—')}</div>
+            </div>
+            <div style="background:var(--navy);border-radius:6px;padding:8px 10px;">
+              <div class="txt-sm bold" style="color:#fff;">${esc(k.target||'—')}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <button class="btn btn-navy btn-full" onclick="closeModal()">Close</button>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════════════════
+// OPPORTUNITIES & VOTING
+// ═══════════════════════════════════════════════════════════
+
+function doAddOpportunity(code,role){
+  const inp=document.getElementById('oppIn');
+  const desc=(inp?.value||'').trim();
+  if(!desc){toast('Enter an opportunity description');return;}
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.opportunities)ev.opportunities=[];
+  ev.opportunities.push({id:'op'+Date.now(),description:desc,order:ev.opportunities.length,addedAt:new Date().toISOString()});
+  DB.saveEvent(ev);
+  if(inp)inp.value='';
+  const el=document.getElementById('opp-section');
+  if(el)el.innerHTML=buildOppSectionHTML(code,role,ev);
+  setTimeout(()=>document.getElementById('oppIn')?.focus(),50);
+}
+
+function doDeleteOpportunity(code,opId,role){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const vs=ev.voting?.status||'closed';
+  if(vs==='voting'){toast('Cannot delete opportunities while voting is in progress');return;}
+  if(!confirm('Remove this opportunity?'))return;
+  ev.opportunities=(ev.opportunities||[]).filter(o=>o.id!==opId);
+  DB.saveEvent(ev);
+  const el=document.getElementById('opp-section');
+  if(el)el.innerHTML=buildOppSectionHTML(code,role,DB.getEvent(code));
+}
+
+function moveOppUp(code,opId){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ops=ev.opportunities||[];
+  const i=ops.findIndex(o=>o.id===opId);
+  if(i<=0)return;
+  const tmp=ops[i-1];ops[i-1]=ops[i];ops[i]=tmp;
+  ev.opportunities=ops;
+  DB.saveEvent(ev);
+  const el=document.getElementById('opp-section');
+  if(el)el.innerHTML=buildOppSectionHTML(code,'admin',DB.getEvent(code));
+}
+
+function moveOppDown(code,opId){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ops=ev.opportunities||[];
+  const i=ops.findIndex(o=>o.id===opId);
+  if(i<0||i>=ops.length-1)return;
+  const tmp=ops[i+1];ops[i+1]=ops[i];ops[i]=tmp;
+  ev.opportunities=ops;
+  DB.saveEvent(ev);
+  const el=document.getElementById('opp-section');
+  if(el)el.innerHTML=buildOppSectionHTML(code,'admin',DB.getEvent(code));
+}
+
+// ── Section HTML builder ──
+function buildOppSectionHTML(code,role,ev){
+  const ops=ev.opportunities||[];
+  const vs=ev.voting?.status||'closed';
+  const evParticipants=ev.participants||[];
+  const numCls=i=>i===0?'rank-num gold':i===1?'rank-num silver':i===2?'rank-num bronze':'rank-num';
+
+  // ── LOCKED — final results + assign panels + reset link ──
+  if(vs==='locked'){
+    const ranked=ev.voting?.ranked||[];
+    const vc=ev.voting?.voterCount||0;
+    const buildAssignPanel=(op,rank)=>{
+      if(op.assigned)return'';
+      return`<div class="op-panel-wrap" id="apw_${op.id}">
+        <div class="op-panel">
+          <div style="font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;">Create Action Item from #${rank}</div>
+          <div class="fg">
+            <label class="lbl">Title *</label>
+            <input class="ctrl" id="aptitle_${op.id}" value="${esc(op.description)}">
+            <div id="aperr_title_${op.id}" class="val-err">Title is required</div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Owner *</label>
+            ${evParticipants.length
+              ?`<div class="owner-chips">${evParticipants.map(p=>`<div class="owner-chip" data-name="${esc(p)}" data-opid="${op.id}" onclick="selectAssignOwner(this)">${esc(p)}</div>`).join('')}</div>`
+              :`<input class="ctrl" id="apowner_text_${op.id}" placeholder="Who is responsible?">`}
+            <div id="aperr_owner_${op.id}" class="val-err">Please select an owner</div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Due Date *</label>
+            <input class="ctrl" type="date" id="apdate_${op.id}">
+            <div id="aperr_date_${op.id}" class="val-err">Due date is required</div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Priority</label>
+            <div class="tap-row">
+              ${['Low','Medium','High'].map(p=>`<div class="tap-opt ap-priority${p==='Medium'?' sel':''}" data-val="${p}" data-opid="${op.id}" onclick="selectAssignPriority(this)">${p}</div>`).join('')}
+            </div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Category *</label>
+            <div class="cat-chips">
+              ${CATS.map(c=>`<div class="cat-chip ap-cat" data-cat="${c}" data-opid="${op.id}" onclick="toggleAssignCat(this)">${c}</div>`).join('')}
+            </div>
+            <div id="aperr_cat_${op.id}" class="val-err">Select at least one category</div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Status</label>
+            <div class="tap-row">
+              ${['Not Started','In Progress','Complete'].map(s=>`<div class="tap-opt ap-status${s==='Not Started'?' sel':''}" data-val="${s}" data-opid="${op.id}" onclick="selectAssignStatus(this)" style="font-size:12px;">${s}</div>`).join('')}
+            </div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Notes</label>
+            <textarea class="ctrl" id="apnotes_${op.id}" rows="2" placeholder="Optional notes..."></textarea>
+          </div>
+          <div class="flex g2">
+            <button class="btn btn-outline btn-sm" style="flex:1" onclick="cancelAssignPanel('${op.id}')">Cancel</button>
+            <button class="btn btn-gold btn-sm" style="flex:1" onclick="submitAssignItem('${code}','${op.id}',${rank})">Create Action Item</button>
+          </div>
+        </div>
+      </div>`;
+    };
+    return`<div class="card mb3">
+      <div class="card-body">
+        <div class="sec-hdr mb3">
+          <span class="sec-title">🏆 Final Results</span>
+          <span class="voter-pill">${vc} voter${vc!==1?'s':''}</span>
+        </div>
+        ${ranked.length===0?`<p class="txt-sm txt-muted mb3">No votes were submitted.</p>`
+          :ranked.map((op,i)=>{const pct=op.avg/5*100;return`
+          <div style="margin-bottom:8px;">
+            <div class="rank-row" style="margin-bottom:0;">
+              <div class="${numCls(i)}">${i+1}</div>
+              <div style="flex:1;min-width:0;">
+                <div class="txt-sm bold" style="word-break:break-word;">${esc(op.description)}</div>
+                <div class="txt-xs txt-muted mt1">${op.voteCount} vote${op.voteCount!==1?'s':''}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+                <span class="rank-score">★ ${op.avg.toFixed(1)}</span>
+                <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
+              </div>
+              ${op.assigned
+                ?`<div class="assigned-group">
+                    <span class="assigned-check">✓ Assigned</span>
+                    <button class="unassign-btn" onclick="doUnassignOpportunity('${esc(code)}','${esc(op.id)}','admin')">✕ Unassign</button>
+                  </div>`
+                :`<button class="assign-btn" onclick="toggleAssignPanel('${op.id}')">Assign</button>`}
+            </div>
+            ${buildAssignPanel(op,i+1)}
+          </div>`;}).join('')}
+        ${ranked.length>0?`
+          <div style="border-top:2px solid var(--gold);margin-top:4px;padding-top:14px;margin-bottom:4px;">
+            <div class="txt-sm bold" style="color:var(--navy);">Convert Top Opportunities to Action Items</div>
+            <p class="txt-xs txt-muted mt1 mb1">Tap <strong>Assign</strong> next to any opportunity to create an action item from it.</p>
+          </div>
+        `:''}
+        <div style="text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--gray-200);">
+          <button style="background:none;border:none;color:var(--gray-600);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;" onclick="doResetVoting('${esc(code)}')">↺ Reset Voting</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── VOTING IN PROGRESS ───────────────────────────────────
+  if(vs==='voting'){
+    return`<div class="card mb3">
+      <div class="card-body">
+        <div class="sec-hdr mb2">
+          <span class="sec-title">Opportunities</span>
+          <span style="background:#fff3e0;color:#e65100;border-radius:100px;font-size:10px;font-weight:900;padding:3px 10px;letter-spacing:.5px;text-transform:uppercase;">Voting Active</span>
+        </div>
+        ${ops.length===0?`<p class="txt-sm txt-muted mb3">No opportunities added.</p>`:''}
+        ${ops.map((op,i)=>`<div class="opp-row">
+          <div class="opp-num">${i+1}</div>
+          <div class="opp-desc">${esc(op.description)}</div>
+        </div>`).join('')}
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-gold btn-sm" onclick="renderVotingOpportunity('${esc(code)}',1,0)">▶ Resume Voting</button>
+          <button class="btn btn-outline btn-sm" onclick="doResetVoting('${esc(code)}')">↺ Reset Voting</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── PRE-VOTING (closed / null) ───────────────────────────
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb3">
+        <span class="sec-title">Opportunities</span>
+        ${ops.length>0?`<button class="btn btn-outline btn-sm" style="font-size:12px;min-height:32px;padding:5px 11px;" onclick="exportOpportunityList('${esc(code)}')">⬇ Export List</button>`:''}
+      </div>
+      ${ops.length===0?`<p class="txt-sm txt-muted mb3">No opportunities added yet.</p>`:''}
+      ${ops.map((op,i)=>`<div class="opp-row">
+        <div class="opp-num">${i+1}</div>
+        <div class="opp-desc">${esc(op.description)}</div>
+        <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;margin-left:4px;">
+          <button style="background:none;border:1px solid var(--gray-200);border-radius:4px;width:24px;height:22px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;color:var(--navy);${i===0?'opacity:.25;pointer-events:none;':''}" onclick="moveOppUp('${esc(code)}','${esc(op.id)}')" title="Move up">▲</button>
+          <button style="background:none;border:1px solid var(--gray-200);border-radius:4px;width:24px;height:22px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;color:var(--navy);${i===ops.length-1?'opacity:.25;pointer-events:none;':''}" onclick="moveOppDown('${esc(code)}','${esc(op.id)}')" title="Move down">▼</button>
+        </div>
+        <button class="opp-del" onclick="doDeleteOpportunity('${esc(code)}','${esc(op.id)}','admin')" title="Remove">✕</button>
+      </div>`).join('')}
+      <div class="flex g2 mt2 mb3">
+        <input id="oppIn" class="ctrl" placeholder="Describe the opportunity…" style="flex:1;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doAddOpportunity('${esc(code)}','admin');}">
+        <button class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="doAddOpportunity('${esc(code)}','admin')">Add</button>
+      </div>
+      ${ops.length>0?`<button class="btn btn-gold btn-full btn-start-voting" style="font-size:16px;padding:16px;margin-top:8px;" onclick="showVotingConfirmation('${esc(code)}')">🗳️ START VOTING</button>`:''}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ASSIGN PANEL — inline opportunity-to-action-item workflow
+// ═══════════════════════════════════════════════════════════
+function toggleAssignPanel(opId){
+  const wrap=document.getElementById('apw_'+opId);
+  if(!wrap)return;
+  const opening=!wrap.classList.contains('open');
+  document.querySelectorAll('.op-panel-wrap.open').forEach(el=>{if(el!==wrap)el.classList.remove('open');});
+  if(opening){
+    _panelState[opId]={owner:'',priority:'Medium',cats:[],status:'Not Started'};
+    wrap.classList.add('open');
+  } else {
+    wrap.classList.remove('open');
+    delete _panelState[opId];
+  }
+}
+function cancelAssignPanel(opId){
+  const wrap=document.getElementById('apw_'+opId);
+  if(wrap)wrap.classList.remove('open');
+  delete _panelState[opId];
+}
+function selectAssignOwner(el){
+  const opId=el.dataset.opid,name=el.dataset.name;
+  if(!_panelState[opId])_panelState[opId]={owner:'',priority:'Medium',cats:[],status:'Not Started'};
+  _panelState[opId].owner=_panelState[opId].owner===name?'':name;
+  document.querySelectorAll('#apw_'+opId+' .owner-chip').forEach(c=>c.classList.toggle('sel',c.dataset.name===_panelState[opId].owner));
+  const err=document.getElementById('aperr_owner_'+opId);
+  if(err&&_panelState[opId].owner)err.classList.remove('show');
+}
+function selectAssignPriority(el){
+  const opId=el.dataset.opid,val=el.dataset.val;
+  if(!_panelState[opId])_panelState[opId]={owner:'',priority:'Medium',cats:[],status:'Not Started'};
+  _panelState[opId].priority=val;
+  document.querySelectorAll('#apw_'+opId+' .ap-priority').forEach(b=>b.classList.toggle('sel',b.dataset.val===val));
+}
+function toggleAssignCat(el){
+  const opId=el.dataset.opid,cat=el.dataset.cat;
+  if(!_panelState[opId])_panelState[opId]={owner:'',priority:'Medium',cats:[],status:'Not Started'};
+  const cats=_panelState[opId].cats,i=cats.indexOf(cat);
+  if(i>-1)cats.splice(i,1);else cats.push(cat);
+  // cat-chip uses 'on' class (matches existing .cat-chip.on CSS)
+  document.querySelectorAll('#apw_'+opId+' .ap-cat').forEach(c=>c.classList.toggle('on',cats.includes(c.dataset.cat)));
+  const err=document.getElementById('aperr_cat_'+opId);
+  if(err&&cats.length>0)err.classList.remove('show');
+}
+function selectAssignStatus(el){
+  const opId=el.dataset.opid,val=el.dataset.val;
+  if(!_panelState[opId])_panelState[opId]={owner:'',priority:'Medium',cats:[],status:'Not Started'};
+  _panelState[opId].status=val;
+  document.querySelectorAll('#apw_'+opId+' .ap-status').forEach(b=>b.classList.toggle('sel',b.dataset.val===val));
+}
+function submitAssignItem(code,opId,rank){
+  if(!_panelState[opId]){toast('Please open the form first');return;}
+  const st=_panelState[opId];
+  const ev=DB.getEvent(code);
+  const pts=(ev?.participants)||[];
+  const titleEl=document.getElementById('aptitle_'+opId);
+  const dateEl=document.getElementById('apdate_'+opId);
+  const notesEl=document.getElementById('apnotes_'+opId);
+  const title=(titleEl?.value||'').trim();
+  const dueDate=dateEl?.value||'';
+  const notes=(notesEl?.value||'').trim();
+  let owner=pts.length?st.owner:(document.getElementById('apowner_text_'+opId)?.value||'').trim();
+  // Clear then show validation errors
+  document.querySelectorAll('#apw_'+opId+' .val-err').forEach(e=>e.classList.remove('show'));
+  let hasErr=false;
+  const showErr=(id)=>{const e=document.getElementById(id);if(e)e.classList.add('show');hasErr=true;};
+  if(!title)showErr('aperr_title_'+opId);
+  if(!owner)showErr('aperr_owner_'+opId);
+  if(!dueDate)showErr('aperr_date_'+opId);
+  if(!st.cats.length)showErr('aperr_cat_'+opId);
+  if(hasErr)return;
+  DB.addItem(code,{description:title,owner,dueDate,priority:st.priority,categories:[...st.cats],status:st.status,comment:notes,fromOpRank:rank,fromOpId:opId});
+  if(ev){
+    (ev.opportunities||[]).forEach(o=>{if(o.id===opId)o.assigned=true;});
+    if(ev.voting?.ranked)ev.voting.ranked.forEach(o=>{if(o.id===opId)o.assigned=true;});
+    DB.saveEvent(ev);
+  }
+  delete _panelState[opId];
+  toast('Action item created!');
+  setTimeout(()=>renderEvent(code,'admin'),300);
+}
+
+function doUnassignOpportunity(code,opId,role){
+  if(!confirm('This will remove the linked action item. Continue?'))return;
+  const ev=DB.getEvent(code);if(!ev)return;
+  const items=DB.getItems(code);
+  const linked=items.find(i=>i.fromOpId===opId);
+  if(linked)DB.deleteItem(code,linked.id);
+  (ev.opportunities||[]).forEach(o=>{if(o.id===opId)delete o.assigned;});
+  if(ev.voting&&ev.voting.ranked)ev.voting.ranked.forEach(o=>{if(o.id===opId)delete o.assigned;});
+  DB.saveEvent(ev);
+  toast('Unassigned — action item removed.');
+  renderEvent(code,role);
+}
+
+// ── Modal tap-select helpers ──
+function selectModalOwner(el){
+  _modalOwner=_modalOwner===el.dataset.name?'':el.dataset.name;
+  document.querySelectorAll('.modal-owner-chip').forEach(c=>c.classList.toggle('sel',c.dataset.name===_modalOwner));
+  const err=document.getElementById('modal_owner_err');
+  if(err&&_modalOwner)err.classList.remove('show');
+}
+function selectModalPriority(el){
+  _modalPriority=el.dataset.val;
+  document.querySelectorAll('.modal-priority-opt').forEach(b=>b.classList.toggle('sel',b.dataset.val===_modalPriority));
+}
+function selectModalStatus(el){
+  _modalStatus=el.dataset.val;
+  document.querySelectorAll('.modal-status-opt').forEach(b=>b.classList.toggle('sel',b.dataset.val===_modalStatus));
+}
+
+// ═══════════════════════════════════════════════════════════
+// PASS-THE-TABLET VOTING
+// ═══════════════════════════════════════════════════════════
+function showVotingConfirmation(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!(ev.opportunities?.length)){toast('Add at least one opportunity first');return;}
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Start Voting</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body" style="text-align:center;padding:32px 24px;">
+      <div style="font-size:52px;margin-bottom:16px;">🗳️</div>
+      <h3 style="font-size:20px;font-weight:900;color:var(--navy);margin-bottom:8px;">Ready to start voting?</h3>
+      <p class="txt-sm txt-muted mb4">Pass the tablet to each participant to rate the opportunities.</p>
+      <div class="flex g2">
+        <button class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-gold" style="flex:1" onclick="closeModal();startVotingSession('${esc(code)}')">Confirm</button>
+      </div>
+    </div>
+  `);
+}
+
+function startVotingSession(code){
+  DB.saveVotes2(code,[]);
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.voting)ev.voting={};
+  ev.voting.status='voting';ev.voting.ranked=null;ev.voting.voterCount=0;
+  DB.saveEvent(ev);
+  renderVotingOpportunity(code,1,0);
+}
+
+function renderVotingOpportunity(code,voterNum,opIdx){
+  _vtRating=null;
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ops=ev.opportunities||[];const op=ops[opIdx];if(!op)return;
+  const N=ops.length;const pct=(opIdx/N)*100;
+  renderVoting(`
+    <div class="vfs">
+      <div class="vfs-escape-zone" onclick="handleVotingEscape('${esc(code)}')"></div>
+      <div class="vfs-inner">
+        <div class="vfs-event">${esc(ev.name)}</div>
+        <div class="vfs-voter">Voter ${voterNum}</div>
+        <div class="vfs-prog"><div class="vfs-prog-fill" style="width:${pct}%"></div></div>
+        <div class="vfs-opp-count">Opportunity ${opIdx+1} of ${N}</div>
+        <div class="vfs-opp-text">${esc(op.description)}</div>
+        <div class="vfs-num-row" id="vt-num-row">
+          ${[1,2,3,4,5].map(n=>`<button class="vfs-num-btn" id="vtn-${n}" onclick="selectVotingRating(${n},'${esc(code)}',${voterNum},${opIdx})">${n}</button>`).join('')}
+        </div>
+        <div class="vfs-hint">1 = low priority &nbsp;·&nbsp; 5 = high priority</div>
+        <button id="vt-submit" class="vfs-submit disabled">SUBMIT VOTE</button>
+      </div>
+    </div>
+  `);
+}
+
+function selectVotingRating(n,code,voterNum,opIdx){
+  _vtRating=n;
+  [1,2,3,4,5].forEach(i=>{
+    const btn=document.getElementById('vtn-'+i);
+    if(btn)btn.className='vfs-num-btn'+(i===n?' sel':'');
+  });
+  const sub=document.getElementById('vt-submit');
+  if(sub){sub.className='vfs-submit ready';sub.onclick=()=>submitVotingRating(code,voterNum,opIdx);}
+}
+
+function submitVotingRating(code,voterNum,opIdx){
+  if(_vtRating===null)return;
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ops=ev.opportunities||[];const op=ops[opIdx];if(!op)return;
+  const votes=DB.getVotes2(code);
+  votes.push({opportunityId:op.id,rating:_vtRating,voterNumber:voterNum,timestamp:new Date().toISOString()});
+  DB.saveVotes2(code,votes);
+  const isLast=opIdx===ops.length-1;
+  if(isLast)renderHandoffScreen(code,voterNum);
+  else renderVoteConfirmation(code,voterNum,opIdx);
+}
+
+function renderVoteConfirmation(code,voterNum,opIdx){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const N=ev.opportunities?.length||0;
+  renderVoting(`
+    <div class="vfs">
+      <div class="vfs-escape-zone" onclick="handleVotingEscape('${esc(code)}')"></div>
+      <div class="vfs-inner" style="justify-content:center;">
+        <div class="vfc-check">✅</div>
+        <div class="vfc-title">Vote Recorded!</div>
+        <div class="vfc-sub">Opportunity ${opIdx+1} of ${N} complete</div>
+        <button class="vfc-btn-next" onclick="renderVotingOpportunity('${esc(code)}',${voterNum},${opIdx+1})">NEXT OPPORTUNITY</button>
+        <button class="vfc-btn-done" onclick="renderHandoffScreen('${esc(code)}',${voterNum})">DONE VOTING — PASS TO NEXT PERSON</button>
+      </div>
+    </div>
+  `);
+}
+
+function renderHandoffScreen(code,voterNum){
+  const ev=DB.getEvent(code);if(!ev)return;
+  renderVoting(`
+    <div class="vfs">
+      <div class="vfs-escape-zone" onclick="handleVotingEscape('${esc(code)}')"></div>
+      <div class="vfs-inner" style="justify-content:center;">
+        <div class="vfh-complete">Voter ${voterNum} complete.</div>
+        <button class="vfc-btn-next" onclick="renderVotingOpportunity('${esc(code)}',${voterNum+1},0)">START NEXT VOTER</button>
+        <button class="vfc-btn-done" onclick="endVotingAndShowRankings('${esc(code)}',${voterNum})">END VOTING &amp; SEE RANKINGS</button>
+      </div>
+    </div>
+  `);
+}
+
+function endVotingAndShowRankings(code,totalVoters){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const votes=DB.getVotes2(code);
+  const ops=ev.opportunities||[];
+  const scoreMap={};
+  votes.forEach(v=>{
+    if(!scoreMap[v.opportunityId])scoreMap[v.opportunityId]={total:0,count:0};
+    scoreMap[v.opportunityId].total+=v.rating;
+    scoreMap[v.opportunityId].count++;
+  });
+  const ranked=ops.map((op,i)=>{
+    const s=scoreMap[op.id]||{total:0,count:0};
+    const avg=s.count>0?Math.round(s.total/s.count*10)/10:0;
+    return{id:op.id,description:op.description,avg,voteCount:s.count,order:i};
+  }).sort((a,b)=>b.avg-a.avg||a.order-b.order);
+  if(!ev.voting)ev.voting={};
+  ev.voting.status='locked';ev.voting.ranked=ranked;
+  ev.voting.voterCount=totalVoters;ev.voting.closedAt=new Date().toISOString();
+  DB.saveEvent(ev);
+  renderVotingResults(code);
+}
+
+function renderVotingResults(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const ranked=ev.voting?.ranked||[];
+  const voterCount=ev.voting?.voterCount||0;
+  const medals=['🥇','🥈','🥉'];
+  renderVoting(`
+    <div class="vfs">
+      <div class="vfs-inner">
+        <div style="text-align:center;padding-top:20px;">
+          <div style="font-size:40px;margin-bottom:4px;">🏆</div>
+          <div class="vfr-title">Voting Results</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:28px;">${esc(ev.name)} · ${voterCount} voter${voterCount!==1?'s':''}</div>
+        </div>
+        ${ranked.map((op,i)=>`
+          <div class="vfr-row" style="animation-delay:${i*0.07}s">
+            <div class="vfr-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||i+1}</div>
+            <div class="vfr-desc">${esc(op.description)}</div>
+            <div class="vfr-score">${op.avg.toFixed(1)} ⭐<br><span style="font-size:12px;font-weight:600;">(${op.voteCount} vote${op.voteCount!==1?'s':''})</span></div>
+          </div>
+        `).join('')}
+        ${ranked.length===0?`<div style="text-align:center;padding:40px;color:rgba(255,255,255,.5);font-size:16px;">No votes recorded.</div>`:''}
+        <button class="vfr-back" onclick="returnToAdminFromVoting('${esc(code)}')">BACK TO ADMIN</button>
+      </div>
+    </div>
+  `);
+}
+
+function returnToAdminFromVoting(code){
+  S.eventCode=code;
+  renderEvent(code,'admin');
+}
+
+function handleVotingEscape(code){
+  _escapeCount++;
+  clearTimeout(_escapeTimer);
+  if(_escapeCount>=3){
+    _escapeCount=0;
+    const ev=DB.getEvent(code);
+    if(ev&&ev.voting&&ev.voting.status==='voting'){
+      ev.voting.status=null;
+      DB.saveEvent(ev);
+    }
+    toast('Emergency exit — returned to admin.');
+    renderEvent(code,'admin');
+  } else {
+    _escapeTimer=setTimeout(()=>{_escapeCount=0;},1500);
+  }
+}
+
+function doResetVoting(code){
+  if(!confirm('Clear all vote data and reset to Start Voting?'))return;
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(ev.voting){ev.voting.status=null;ev.voting.ranked=null;ev.voting.voterCount=0;ev.voting.closedAt=null;}
+  (ev.opportunities||[]).forEach(o=>delete o.assigned);
+  DB.saveVotes2(code,[]);
+  DB.saveEvent(ev);
+  _escapeCount=0;clearTimeout(_escapeTimer);
+  toast('Voting reset.');
+  // If a voting overlay is currently showing, do a full re-render.
+  // Otherwise just patch the opp-section in place.
+  if(document.querySelector('.vfs')){
+    renderEvent(code,'admin');
+  } else {
+    const el=document.getElementById('opp-section');
+    if(el)el.innerHTML=buildOppSectionHTML(code,'admin',DB.getEvent(code));
+    else renderEvent(code,'admin');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEMO DATA SEED
+// ═══════════════════════════════════════════════════════════
+function seedDemo(){
+  if(DB.getEvent('DEMO01'))return;
+  const ev={
+    code:'DEMO01',name:'Press Line Changeover Reduction',plant:'Plant 2 – Stamping',
+    date:todayStr(),facilitator:'Chase Singleton',
+    problem:'Changeover time averaging 45 min, causing schedule delays',
+    kpis:[
+      {name:'Delivery — OTD',target:'Improve from 82% to 95%'},
+      {name:'Cost — Changeover Time',target:'Reduce from 45 min to 25 min'}
+    ],
+    currentMetric:'45 min avg changeover',targetMetric:'25 min avg changeover',
+    status:'active',createdAt:new Date().toISOString(),createdBy:'Chase'
+  };
+  DB.saveEvent(ev);
+  const d=(n)=>{const x=new Date();x.setDate(x.getDate()+n);return x.toISOString().split('T')[0];};
+  [
+    {description:'Order quick-change die clamps',owner:'Mike Torres',dueDate:d(5),priority:'High',categories:['Cost','Delivery'],status:'In Progress',comment:'PO submitted, delivery expected Thursday'},
+    {description:'Create standardized changeover checklist',owner:'Sarah Chen',dueDate:d(2),priority:'High',categories:['Quality'],status:'Not Started',comment:''},
+    {description:'5S shadow board for changeover tools',owner:'Dave Kowalski',dueDate:d(-1),priority:'Medium',categories:['5S','Safety'],status:'In Progress',comment:'Board built, labeling in progress'},
+    {description:'Train all operators on new procedure',owner:'Chase Singleton',dueDate:d(10),priority:'High',categories:['People'],status:'Not Started',comment:''},
+    {description:'Install die height indicator gauges',owner:'Mike Torres',dueDate:d(7),priority:'Medium',categories:['Safety'],status:'Not Started',comment:''},
+    {description:'Update PM schedule for quick-change components',owner:'Sarah Chen',dueDate:d(-3),priority:'Low',categories:['Delivery'],status:'Complete',comment:'Done – updated in CMMS'},
+  ].forEach(item=>DB.addItem('DEMO01',item));
+}
+
+// ═══════════════════════════════════════════════════════════
+// SERVICE WORKER
+// ═══════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  // Register SW and immediately check for updates on every page load.
+  // reg.update() fetches sw.js fresh from the network each visit so
+  // any change to sw.js is detected within one browser open — no manual
+  // cache clearing required on any device.
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.update(); // force update check right now
+    }).catch(()=>{});
+  });
+
+  // When a new SW activates and claims this client (via clients.claim()),
+  // reload the page so the freshly cached files are used immediately.
+  // Guards against double-reload with the `refreshing` flag.
+  let _swRefreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!_swRefreshing){
+      _swRefreshing=true;
+      window.location.reload();
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════════════
+seedDemo();
+init();
+</script>
+</body>
+</html>
