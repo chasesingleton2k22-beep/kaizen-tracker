@@ -3893,6 +3893,51 @@ function seedDemo(){
 }
 
 // ═══════════════════════════════════════════════════════════
+// SEED — Kitting CI Project (real project data, not a demo — runs
+// once, guarded by a fixed code, exactly like seedDemo() above)
+// ═══════════════════════════════════════════════════════════
+function seedKittingCI(){
+  const CODE='KITTB1';
+  if(DB.getEvent(CODE))return;
+  const ev={
+    code:CODE,type:'ci_project',
+    name:'Kitting, Thumbs, and Coupler Orders from the Burn Table',
+    plant:'Plant 2 – Kitting',
+    date:todayStr(),
+    assignedBy:'',
+    facilitator:'Chase Singleton',
+    background:'Boss-assigned directly. Goal: gather the current landscape first, paint it thoroughly, and only design the "after" state once the "before" is fully understood — not the other way around.',
+    currentState:'Model: burn-to-stock + burn-to-order. Parts come off the burn table and operators stack them on a wall of stores directly across the aisle (~10 ft) from the laser, organized/zoned by part type (panels, footballs, thumbs, etc.) with pallet labels — the burn bay itself IS the store.\n\nRole: Kitter — pulls from store inventory to build kits on demand, delivers to assembly teams. No kanban wall of pre-built kits (that\'s the Plant 1 model). Pallets are moved by forklift, not walked by hand.\n\nDocumented issue: the Couplers team and their supervisor once had to pull their own parts because kitting was behind — a systemic material-flow risk.\n\nJason (Kitting) has proposed a zone-based system: instead of 3 kitters each walking the full path to build one complete kit, each kitter owns one part-type zone and batches for all kits at once, then the team assembles together. Blocker: how multiple kitters converge parts onto one pallet — a forklift/staging problem that\'s never been resolved, currently "pinned."',
+    hypothesis:'Kitters skip the wall of stores entirely. They come to the burn table itself with a specific order in hand and pull the parts they need directly off the table where the operator just cut them — no intermediate staging on the wall.\n\nWhy this matters: order sizes swing wildly (2 pieces vs. 100+), so we need to know there are enough pallets on hand for any mix, including two small orders sharing a pallet or one huge order needing more than one — measured, not guessed. Boss wants throughput tracked especially for Thumbs and Couplers kits as the headline before/after numbers.',
+    issues:[
+      {id:'is1',text:'Couplers team + supervisor had to pull their own parts because kitting was behind — systemic material-flow risk.'},
+      {id:'is2',text:'Panel storage area has 200+ locations with tribal-knowledge-only labeling; similar part numbers stored near each other — one kitter got 70% of a kit wrong (all panels).'},
+      {id:'is3',text:'Triangle parts labeled with frame # only (no width) — wrong-width triangles (8" vs 10") welded to 3 panels before catch, causing rework.'},
+      {id:'is4',text:'Pre-assembled parts (footballs, side cutters) can\'t be separated — no dedicated "Kit Zone" or "DO NOT SEPARATE" labeling exists yet.'},
+      {id:'is5',text:'Jason\'s zone-based kitting proposal is blocked on how multiple kitters converge parts onto one pallet — forklift/staging problem, currently unresolved ("pinned").'}
+    ],
+    openQuestions:[
+      {id:'oq1',text:"What happens if a kitter's order isn't ready when they arrive at the table (no store buffer to fall back on)?",resolved:false},
+      {id:'oq2',text:'How does congestion look with kitters standing at a live laser table?',resolved:false},
+      {id:'oq3',text:'Do "DO NOT SEPARATE" pre-assembled parts still get handled correctly without a store to flag them?',resolved:false}
+    ],
+    interview:[
+      {id:'iv1',q:'Walk me through one full kit, start to finish, exactly as it happens today.',a:''},
+      {id:'iv2',q:'When an order is small (2-3 pieces), does it still get its own pallet, or does it share with something else?',a:''},
+      {id:'iv3',q:'When an order is large (50-100+ pieces), does it ever run out of pallet space mid-kit? What happens then?',a:''},
+      {id:'iv4',q:'How do you know how many pallets to have staged before a shift starts?',a:''},
+      {id:'iv5',q:'Who decides when a pallet is "full enough" to move, versus waiting for more?',a:''},
+      {id:'iv6',q:'Where do partially-filled pallets sit, and for how long, before they move?',a:''},
+      {id:'iv7',q:"What's the forklift's role here — is it ever a bottleneck (waiting on a driver, one forklift serving multiple kitters)?",a:''},
+      {id:'iv8',q:'What happens today if kitting falls behind — does anyone besides the kitter pull parts?',a:''}
+    ],
+    participants:['Jason'],
+    status:'active',createdAt:new Date().toISOString(),createdBy:'Chase'
+  };
+  DB.saveEvent(ev);
+}
+
+// ═══════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ═══════════════════════════════════════════════════════════
 if('serviceWorker' in navigator){
@@ -3922,6 +3967,7 @@ if('serviceWorker' in navigator){
 // START
 // ═══════════════════════════════════════════════════════════
 seedDemo();
+seedKittingCI();
 init();
 </script>
 </body>
