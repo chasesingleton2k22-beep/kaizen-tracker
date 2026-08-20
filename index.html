@@ -433,6 +433,22 @@ const DB = {
     return null;
   },
   deleteItem(c,id){this.saveItems(c,this.getItems(c).filter(x=>x.id!==id));},
+  // CI Project metrics log (generic before/after observation log — not tied to any one project)
+  getMetricLogs(c){return this._r('kz_ml_'+c)||[];},
+  saveMetricLogs(c,logs){this._w('kz_ml_'+c,logs);},
+  addMetricLog(c,log){
+    const logs=this.getMetricLogs(c);
+    log.id='m'+Date.now()+Math.random().toString(36).slice(2,6);
+    log.createdAt=new Date().toISOString();
+    logs.push(log);this.saveMetricLogs(c,logs);return log;
+  },
+  updateMetricLog(c,id,patch){
+    const logs=this.getMetricLogs(c);
+    const i=logs.findIndex(x=>x.id===id);
+    if(i>-1){logs[i]={...logs[i],...patch,updatedAt:new Date().toISOString()};this.saveMetricLogs(c,logs);return logs[i];}
+    return null;
+  },
+  deleteMetricLog(c,id){this.saveMetricLogs(c,this.getMetricLogs(c).filter(x=>x.id!==id));},
   getVotes(c){return this._r('kz_v_'+c)||{voters:[],scores:{}};},
   saveVotes(c,v){this._w('kz_v_'+c,v);},
   getVotes2(c){return this._r('kz_votes2_'+c)||[];},
@@ -465,6 +481,9 @@ let _modalStatus = 'Not Started'; // status in add/edit modal
 let _vtRating = null;     // current vote selection in pass-the-tablet voting
 let _escapeCount = 0;     // triple-tap emergency exit counter
 let _escapeTimer = null;
+let _mtTab = 'before';        // which phase's log list is shown in a CI Project's Metrics section
+let _mtPhaseSel = 'before';   // phase selected in the add/edit metric log modal
+let _mtEditId = null;         // id of metric log being edited, or null when adding
 
 // ═══════════════════════════════════════════════════════════
 // UTILS
@@ -718,7 +737,10 @@ function renderDash(){
     <div class="content">
       <div class="flex aic jb mb3 mt2">
         <span style="font-size:18px;font-weight:900;color:var(--navy);">Events Dashboard</span>
-        <button class="btn btn-gold btn-sm" onclick="showCreateModal()">+ New Event</button>
+        <div class="flex g2">
+          <button class="btn btn-outline btn-sm" onclick="showCreateCIModal()">+ CI Project</button>
+          <button class="btn btn-gold btn-sm" onclick="showCreateModal()">+ Kaizen Event</button>
+        </div>
       </div>
       <div class="stats">
         <div class="stat"><div class="stat-n">${events.length}</div><div class="stat-l">Total</div></div>
@@ -763,6 +785,7 @@ function dashCard(ev){
       <div style="flex:1;min-width:0;">
         <div class="flex aic g2 mb2">
           <span class="badge b-${esc(ev.status)}">${statusLabel(ev.status)}</span>
+          ${ev.type==='ci_project'?`<span class="badge" style="background:#ede7f6;color:#5e35b1;">CI PROJECT</span>`:''}
         </div>
         <div style="font-weight:800;font-size:15px;color:var(--navy);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(ev.name)}</div>
         <div class="txt-sm txt-muted mb2">${esc(ev.plant)} · ${fmtDate(ev.date)}</div>
@@ -796,6 +819,7 @@ function deleteEvent(code){
   localStorage.removeItem('kz_i_'+code);       // action items
   localStorage.removeItem('kz_v_'+code);        // votes (legacy)
   localStorage.removeItem('kz_votes2_'+code);   // votes (current)
+  localStorage.removeItem('kz_ml_'+code);       // CI Project metrics log
   toast(ev.name+' deleted.');
   renderDash();
 }
@@ -1016,6 +1040,67 @@ function submitCreate(e){
 }
 
 // ═══════════════════════════════════════════════════════════
+// CREATE CI PROJECT MODAL — investigation/trial-style CI work,
+// distinct from a Kaizen workshop event (no opportunities/voting/A3)
+// ═══════════════════════════════════════════════════════════
+function showCreateCIModal(){
+  _participants=[];
+  modal(`
+    <div class="modal-hdr">
+      <span class="modal-title">New CI Project</span>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="txt-xs txt-muted mb3">For investigation/trial-style work — document the current state, test a hypothesis, and log before/after numbers. Not a voting workshop.</p>
+      <form id="createCIForm" onsubmit="submitCreateCI(event)">
+        <div class="fg"><label class="lbl">Project Name *</label>
+          <input class="ctrl" name="name" placeholder="e.g. Plant 2 Kitting — Table-Pull Trial" required></div>
+        <div class="fg"><label class="lbl">Plant / Area *</label>
+          <input class="ctrl" name="plant" placeholder="e.g. Plant 2 – Kitting" required></div>
+        <div class="fg"><label class="lbl">Date Started *</label>
+          <input class="ctrl" type="date" name="date" value="${todayStr()}" required></div>
+        <div class="fg"><label class="lbl">Assigned By</label>
+          <input class="ctrl" name="assignedBy" placeholder="e.g. Robert Crist"></div>
+        <div class="fg"><label class="lbl">Facilitator / Owner</label>
+          <input class="ctrl" name="facilitator" placeholder="e.g. Chase Singleton"></div>
+        <div class="fg"><label class="lbl">Background</label>
+          <textarea class="ctrl" name="background" rows="3" placeholder="Why does this project exist? What problem is it solving?"></textarea></div>
+        <div class="fg">
+          <label class="lbl">Participants</label>
+          <div id="participantTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px;"></div>
+          <div class="flex g2">
+            <input id="participantIn" class="ctrl" placeholder="e.g. Jason" style="flex:1;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addParticipant();}">
+            <button type="button" class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="addParticipant()">Add</button>
+          </div>
+        </div>
+        <div class="flex g2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-gold" style="flex:1">Create Project</button>
+        </div>
+      </form>
+    </div>
+  `);
+  renderParticipantTags();
+}
+
+function submitCreateCI(e){
+  e.preventDefault();
+  const d=Object.fromEntries(new FormData(e.target));
+  const events=DB.getEvents();
+  let code;do{code=genCode();}while(events[code]);
+  const ev={
+    code,type:'ci_project',name:d.name,plant:d.plant,date:d.date,
+    assignedBy:d.assignedBy||'',facilitator:d.facilitator||'',background:d.background||'',
+    participants:[..._participants],
+    status:'active',createdAt:new Date().toISOString(),createdBy:S.user?.name||'Admin'
+  };
+  DB.saveEvent(ev);
+  closeModal();toast('CI Project created!');
+  setTimeout(()=>{S.eventCode=code;renderEvent(code,'admin');},400);
+}
+
+// ═══════════════════════════════════════════════════════════
 // EDIT EVENT MODAL
 // ═══════════════════════════════════════════════════════════
 function showEditEventModal(code){
@@ -1132,6 +1217,7 @@ function submitEditEvent(e,code){
 function renderEvent(code,role){
   stopPoll();
   const ev=DB.getEvent(code);if(!ev)return;
+  if(ev.type==='ci_project'){renderCIProjectPage(code,role);return;}
   if(S.eventCode!==code)S.ownerFilter=null;
   S.eventCode=code;S.view='event';
 
@@ -3272,6 +3358,510 @@ function doResetVoting(code){
     if(el)el.innerHTML=buildOppSectionHTML(code,'admin',DB.getEvent(code));
     else renderEvent(code,'admin');
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CI PROJECT PAGE — investigation/trial-style CI work
+// (background/current-state, hypothesis/open questions, before/after metrics —
+// no opportunities/voting/A3, those are Kaizen-event-specific)
+// ═══════════════════════════════════════════════════════════
+function renderCIProjectPage(code,role){
+  stopPoll();
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(S.eventCode!==code)S.ownerFilter=null;
+  S.eventCode=code;S.view='event';
+
+  const items=DB.getItems(code);
+  const total=items.length;
+  const done=items.filter(i=>i.status==='Complete').length;
+  const over=items.filter(i=>i.status!=='Complete'&&daysUntil(i.dueDate)<0).length;
+  const prog=items.filter(i=>i.status==='In Progress').length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const week=items.filter(i=>i.status!=='Complete'&&daysUntil(i.dueDate)>=0&&daysUntil(i.dueDate)<=7);
+  const itemOwners=[...new Set(items.map(i=>i.owner).filter(Boolean))];
+  const evParticipants=ev.participants||[];
+  const owners=[...new Set([...evParticipants,...itemOwners])];
+
+  let disp=[...items];
+  if(S.ownerFilter)disp=disp.filter(i=>i.owner===S.ownerFilter);
+  const order={r:0,y:1,x:2,g:3};
+  disp.sort((a,b)=>(order[color(a)]||0)-(order[color(b)]||0));
+
+  render(`
+    <div class="hdr"><div class="hdr-in">
+      <button class="btn-ico" onclick="renderDash()" title="Back">←</button>
+      <div class="hdr-logo">KZ</div>
+      <div class="hdr-text">
+        <h1>${esc(ev.name)}</h1>
+        <p>${esc(ev.plant)} · ${fmtDate(ev.date)}</p>
+      </div>
+      <div class="hdr-brand"><div class="hdr-brand-main">Continuous Improvement</div><div class="hdr-brand-sub">TAG Manufacturing</div></div>
+      <div class="hdr-acts">
+        <button class="btn-ico" onclick="showEditEventModal('${code}')" title="Edit Project">✏️</button>
+        <button class="btn-ico" onclick="renderDash()" title="Dashboard">🏠</button>
+        <button class="btn-ico" onclick="showInfoModal('${code}')" title="Project Info">ℹ️</button>
+      </div>
+    </div></div>
+
+    <div class="content">
+      <div class="flex aic jb mb3">
+        <span class="badge" style="background:#ede7f6;color:#5e35b1;font-size:12px;padding:5px 13px;">CI PROJECT</span>
+        <button class="btn btn-outline btn-sm" onclick="showStatusModal('${code}')">Change Status</button>
+      </div>
+
+      <div class="card mb3">
+        <div class="card-body">
+          <div class="flex aic jb mb2">
+            <span style="font-weight:800;font-size:14px;color:var(--navy);">Action Item Progress</span>
+            <span style="font-size:20px;font-weight:900;color:var(--navy);">${pct}%</span>
+          </div>
+          <div class="prog-wrap mb2"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <p class="txt-xs txt-muted mb3" style="text-align:center;">${done} of ${total} complete</p>
+          <div class="stats" style="margin-bottom:0;">
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;">${total}</div><div class="stat-l">Total</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:var(--green);">${done}</div><div class="stat-l">Done</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:#1565c0;">${prog}</div><div class="stat-l">Active</div></div>
+            <div class="stat" style="padding:10px 6px;"><div class="stat-n" style="font-size:20px;color:var(--red);">${over}</div><div class="stat-l">Overdue</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb3">
+        <div class="card-body">
+          <div class="flex aic jb mb2"><span class="sec-title">Participants (${evParticipants.length})</span></div>
+          ${evParticipants.length>0?`
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
+              ${evParticipants.map(p=>`
+                <div style="display:inline-flex;align-items:center;gap:4px;background:var(--navy);color:#fff;border-radius:100px;font-size:13px;font-weight:700;padding:5px 6px 5px 13px;">
+                  ${esc(p)}
+                  <button data-code="${esc(code)}" data-name="${esc(p)}" onclick="removeParticipantEl(this)" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;padding:0;" title="Remove">×</button>
+                </div>
+              `).join('')}
+            </div>
+          `:`<p class="txt-xs txt-muted mb3">No participants added yet.</p>`}
+          <div class="flex g2">
+            <input id="participantIn" class="ctrl" placeholder="Add participant name…" style="flex:1;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();doAddParticipant('${esc(code)}','admin');}">
+            <button class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="doAddParticipant('${esc(code)}','admin')">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="ci-background-section">${buildCIBackgroundSectionHTML(code,ev)}</div>
+      <div id="ci-interview-section">${buildCIInterviewSectionHTML(code,ev)}</div>
+      <div id="ci-hypothesis-section">${buildCIHypothesisSectionHTML(code,ev)}</div>
+      <div id="ci-metrics-section">${buildCIMetricsSectionHTML(code,ev)}</div>
+
+      <div id="p-due-week">${week.length>0?`
+        <div class="due-week mb3">
+          <div class="due-week-title">⚡ Due This Week (${week.length})</div>
+          ${week.map(i=>`
+            <div class="due-row" onclick="showItemDetail('${code}','${esc(i.id)}','admin')">
+              <span class="txt-sm bold" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${esc(i.description)}</span>
+              <span class="txt-xs bold" style="color:var(--yellow);flex-shrink:0;margin-left:8px;">${fmtShort(i.dueDate)}</span>
+            </div>
+          `).join('')}
+        </div>
+      `:''}</div>
+
+      ${owners.length>1?`
+        <div class="chips">
+          <div class="chip ${!S.ownerFilter?'on':''}" data-owner="" onclick="filterOwner(this,'${code}','admin')">All</div>
+          ${owners.map(o=>`<div class="chip ${S.ownerFilter===o?'on':''}" data-owner="${esc(o)}" onclick="filterOwner(this,'${code}','admin')">${esc(o)}</div>`).join('')}
+        </div>
+      `:''}
+
+      <div class="sec-hdr">
+        <span class="sec-title">Action Items${S.ownerFilter?' — '+esc(S.ownerFilter):''}</span>
+        <div class="flex g2">
+          ${total>0?`<button class="btn btn-outline btn-sm" style="font-size:12px;min-height:32px;padding:5px 11px;" onclick="exportActionItems('${esc(code)}')">⬇ Export</button>`:''}
+          <button class="btn btn-gold btn-sm" onclick="showAddModal('${code}','admin')">+ Add</button>
+        </div>
+      </div>
+
+      <div id="p-items-list">${disp.length===0?`
+        <div style="text-align:center;padding:44px 16px;color:var(--gray-400);">
+          <div style="font-size:48px;margin-bottom:12px;">📝</div>
+          <p>${total===0?'No action items yet.':'No items match this filter.'}</p>
+          ${total===0?`<button class="btn btn-gold mt3" onclick="showAddModal('${code}','admin')">Add First Item</button>`:''}
+        </div>
+      `:disp.map(i=>aiCard(i,code,'admin')).join('')}</div>
+    </div>
+  `);
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('.stat-n').forEach(el=>{
+      const n=parseInt(el.textContent)||0;
+      if(n>0)animateCount(el,n);
+    });
+  });
+}
+
+// ── Background & Current State ──────────────────────────────
+function buildCIBackgroundSectionHTML(code,ev){
+  const issues=ev.issues||[];
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb2"><span class="sec-title">Background & Current State</span></div>
+      <div class="fg"><label class="lbl">Assigned By</label>
+        <input class="ctrl" id="ciAssignedBy" value="${esc(ev.assignedBy||'')}" placeholder="Who assigned this project?"></div>
+      <div class="fg"><label class="lbl">Background</label>
+        <textarea class="ctrl" id="ciBackground" rows="3" placeholder="Why does this project exist? What problem is it solving?">${esc(ev.background||'')}</textarea></div>
+      <div class="fg"><label class="lbl">Current State</label>
+        <textarea class="ctrl" id="ciCurrentState" rows="4" placeholder="Describe today's process, plainly, as it actually happens.">${esc(ev.currentState||'')}</textarea></div>
+      <button class="btn btn-navy btn-sm mb3" onclick="saveCIBackground('${esc(code)}')">💾 Save</button>
+
+      <div class="sec-hdr mb2" style="margin-top:6px;"><span class="sec-title">Issues Found</span></div>
+      ${issues.length===0?`<p class="txt-sm txt-muted mb2">No issues logged yet.</p>`:issues.map((it,i)=>`
+        <div class="opp-row">
+          <div class="opp-num">${i+1}</div>
+          <div class="opp-desc">${esc(it.text)}</div>
+          <button class="opp-del" onclick="doDeleteIssue('${esc(code)}','${esc(it.id)}')" title="Remove">✕</button>
+        </div>`).join('')}
+      <div class="flex g2 mt2">
+        <input id="ciIssueIn" class="ctrl" placeholder="Describe an issue or root cause…" style="flex:1;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doAddIssue('${esc(code)}');}">
+        <button class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="doAddIssue('${esc(code)}')">Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+function saveCIBackground(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.assignedBy=document.getElementById('ciAssignedBy')?.value||'';
+  ev.background=document.getElementById('ciBackground')?.value||'';
+  ev.currentState=document.getElementById('ciCurrentState')?.value||'';
+  DB.saveEvent(ev);
+  toast('Saved!');
+}
+function doAddIssue(code){
+  const inp=document.getElementById('ciIssueIn');
+  const text=(inp?.value||'').trim();
+  if(!text){toast('Enter an issue description');return;}
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.issues)ev.issues=[];
+  ev.issues.push({id:'is'+Date.now(),text});
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-background-section');
+  if(el)el.innerHTML=buildCIBackgroundSectionHTML(code,ev);
+}
+function doDeleteIssue(code,id){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.issues=(ev.issues||[]).filter(i=>i.id!==id);
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-background-section');
+  if(el)el.innerHTML=buildCIBackgroundSectionHTML(code,ev);
+}
+
+// ── Floor Notes & Interview Q&A ──────────────────────────────
+function buildCIInterviewSectionHTML(code,ev){
+  const qas=ev.interview||[];
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb2"><span class="sec-title">Floor Notes & Interview</span></div>
+      <div class="fg"><label class="lbl">Floor Observation Notes</label>
+        <textarea class="ctrl" id="ciFloorNotes" rows="4" placeholder="Free-form notes from watching the floor...">${esc(ev.floorNotes||'')}</textarea></div>
+      <button class="btn btn-navy btn-sm mb3" onclick="saveCIFloorNotes('${esc(code)}')">💾 Save Notes</button>
+
+      <div class="sec-hdr mb2" style="margin-top:6px;"><span class="sec-title">Interview Q&amp;A</span></div>
+      ${qas.length===0?`<p class="txt-sm txt-muted mb2">No interview questions added yet.</p>`:qas.map((qa,i)=>`
+        <div class="fg" style="border-bottom:1px solid var(--gray-200);padding-bottom:10px;margin-bottom:10px;">
+          <div class="flex aic jb mb1">
+            <span class="txt-sm bold">${i+1}. ${esc(qa.q)}</span>
+            <button class="opp-del" onclick="doDeleteInterviewQA('${esc(code)}','${esc(qa.id)}')" title="Remove">✕</button>
+          </div>
+          <textarea class="ctrl" rows="2" placeholder="Answer / notes..." onchange="updateInterviewAnswer('${esc(code)}','${esc(qa.id)}',this.value)">${esc(qa.a||'')}</textarea>
+        </div>`).join('')}
+      <div class="fg"><label class="lbl">New Question</label>
+        <input id="ciQIn" class="ctrl" placeholder="What do you want to ask on the floor?"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doAddInterviewQA('${esc(code)}');}"></div>
+      <button class="btn btn-navy btn-sm" onclick="doAddInterviewQA('${esc(code)}')">+ Add Question</button>
+    </div>
+  </div>`;
+}
+function saveCIFloorNotes(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.floorNotes=document.getElementById('ciFloorNotes')?.value||'';
+  DB.saveEvent(ev);
+  toast('Notes saved!');
+}
+function doAddInterviewQA(code){
+  const inp=document.getElementById('ciQIn');
+  const q=(inp?.value||'').trim();
+  if(!q){toast('Enter a question');return;}
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.interview)ev.interview=[];
+  ev.interview.push({id:'iv'+Date.now(),q,a:''});
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-interview-section');
+  if(el)el.innerHTML=buildCIInterviewSectionHTML(code,ev);
+}
+function doDeleteInterviewQA(code,id){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.interview=(ev.interview||[]).filter(x=>x.id!==id);
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-interview-section');
+  if(el)el.innerHTML=buildCIInterviewSectionHTML(code,ev);
+}
+function updateInterviewAnswer(code,id,val){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const qa=(ev.interview||[]).find(x=>x.id===id);
+  if(qa){qa.a=val;DB.saveEvent(ev);}
+}
+
+// ── Trial Hypothesis & Open Questions ────────────────────────
+function buildCIHypothesisSectionHTML(code,ev){
+  const qs=ev.openQuestions||[];
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb2"><span class="sec-title">Trial Hypothesis</span></div>
+      <textarea class="ctrl mb2" id="ciHypothesis" rows="3" placeholder="What are you testing? What's the proposed 'after' state?">${esc(ev.hypothesis||'')}</textarea>
+      <button class="btn btn-navy btn-sm mb3" onclick="saveCIHypothesis('${esc(code)}')">💾 Save</button>
+
+      <div class="sec-hdr mb2" style="margin-top:6px;"><span class="sec-title">Open Questions</span></div>
+      ${qs.length===0?`<p class="txt-sm txt-muted mb2">No open questions yet.</p>`:qs.map(q=>`
+        <div class="flex aic g2" style="padding:8px 0;border-bottom:1px solid var(--gray-200);">
+          <input type="checkbox" ${q.resolved?'checked':''} onchange="doToggleOpenQuestion('${esc(code)}','${esc(q.id)}')" style="width:18px;height:18px;flex-shrink:0;">
+          <span class="txt-sm" style="flex:1;${q.resolved?'text-decoration:line-through;color:var(--gray-400);':''}">${esc(q.text)}</span>
+          <button class="opp-del" onclick="doDeleteOpenQuestion('${esc(code)}','${esc(q.id)}')" title="Remove">✕</button>
+        </div>`).join('')}
+      <div class="flex g2 mt2">
+        <input id="ciOpenQIn" class="ctrl" placeholder="What don't you know yet?" style="flex:1;"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();doAddOpenQuestion('${esc(code)}');}">
+        <button class="btn btn-navy btn-sm" style="flex-shrink:0;" onclick="doAddOpenQuestion('${esc(code)}')">Add</button>
+      </div>
+    </div>
+  </div>`;
+}
+function saveCIHypothesis(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.hypothesis=document.getElementById('ciHypothesis')?.value||'';
+  DB.saveEvent(ev);
+  toast('Saved!');
+}
+function doAddOpenQuestion(code){
+  const inp=document.getElementById('ciOpenQIn');
+  const text=(inp?.value||'').trim();
+  if(!text){toast('Enter a question');return;}
+  const ev=DB.getEvent(code);if(!ev)return;
+  if(!ev.openQuestions)ev.openQuestions=[];
+  ev.openQuestions.push({id:'oq'+Date.now(),text,resolved:false});
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-hypothesis-section');
+  if(el)el.innerHTML=buildCIHypothesisSectionHTML(code,ev);
+}
+function doToggleOpenQuestion(code,id){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const q=(ev.openQuestions||[]).find(x=>x.id===id);
+  if(q){q.resolved=!q.resolved;DB.saveEvent(ev);}
+  const el=document.getElementById('ci-hypothesis-section');
+  if(el)el.innerHTML=buildCIHypothesisSectionHTML(code,ev);
+}
+function doDeleteOpenQuestion(code,id){
+  const ev=DB.getEvent(code);if(!ev)return;
+  ev.openQuestions=(ev.openQuestions||[]).filter(x=>x.id!==id);
+  DB.saveEvent(ev);
+  const el=document.getElementById('ci-hypothesis-section');
+  if(el)el.innerHTML=buildCIHypothesisSectionHTML(code,ev);
+}
+
+// ── Metrics & Before/After Log (generic — any unit, any category) ──
+function computeMetricStats(logs){
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10:0;
+  const qtys=logs.map(l=>Number(l.qty)||0).filter(v=>v>0);
+  const units=logs.map(l=>Number(l.units)||0).filter(v=>v>0);
+  const durations=logs.map(l=>Number(l.durationMin)||0).filter(v=>v>0);
+  const waits=logs.map(l=>Number(l.waitMin)).filter(v=>!isNaN(v)&&v>=0);
+  const totalQty=qtys.reduce((a,b)=>a+b,0);
+  const totalUnits=units.reduce((a,b)=>a+b,0);
+  const days=new Set(logs.map(l=>l.date).filter(Boolean)).size;
+  return{
+    count:logs.length,
+    days,
+    perDay:days>0?Math.round(logs.length/days*10)/10:0,
+    avgQty:avg(qtys),
+    minQty:qtys.length?Math.min(...qtys):0,
+    maxQty:qtys.length?Math.max(...qtys):0,
+    avgUnits:avg(units),
+    qtyPerUnit:totalUnits>0?Math.round(totalQty/totalUnits*10)/10:0,
+    avgDuration:avg(durations),
+    avgWait:avg(waits)
+  };
+}
+
+// directionality 'higherBetter'|'lowerBetter'|null — null shows both values with no judgment
+function metricCompareRow(label,beforeVal,afterVal,unit,directionality){
+  let deltaHtml='';
+  if(directionality&&typeof beforeVal==='number'&&typeof afterVal==='number'&&beforeVal>0){
+    const diff=afterVal-beforeVal;
+    if(diff!==0){
+      const improved=directionality==='higherBetter'?diff>0:diff<0;
+      const color=improved?'var(--green)':'var(--red)';
+      const pct=Math.round(Math.abs(diff)/beforeVal*100);
+      deltaHtml=`<span style="color:${color};font-size:11px;font-weight:800;margin-left:4px;">${diff>0?'▲':'▼'} ${pct}%</span>`;
+    }
+  }
+  return`
+    <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-200);gap:8px;">
+      <div class="txt-sm bold" style="flex:1.4;min-width:0;">${esc(label)}</div>
+      <div class="txt-sm" style="flex:1;text-align:center;color:var(--gray-600);">${beforeVal}${unit}</div>
+      <div class="txt-sm bold" style="flex:1;text-align:center;color:var(--navy);">${afterVal}${unit}${deltaHtml}</div>
+    </div>`;
+}
+
+function buildCIMetricsSectionHTML(code,ev){
+  const allLogs=DB.getMetricLogs(code);
+  const beforeLogs=allLogs.filter(l=>l.phase==='before');
+  const afterLogs=allLogs.filter(l=>l.phase==='after');
+  const bStats=computeMetricStats(beforeLogs);
+  const aStats=computeMetricStats(afterLogs);
+  const tab=_mtTab;
+  const shownLogs=(tab==='before'?beforeLogs:afterLogs).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  const cats=[...new Set(shownLogs.map(l=>l.category).filter(Boolean))];
+  const catLine=cats.length?cats.map(c=>`${c}: ${shownLogs.filter(l=>l.category===c).length}`).join(' · '):'';
+
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb2"><span class="sec-title">📊 Metrics & Before/After Log</span></div>
+      <p class="txt-xs txt-muted mb3">Log observations before and after your trial — same fields each time — to compare volume, cycle time, and wait.</p>
+
+      ${(beforeLogs.length>0||afterLogs.length>0)?`
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;padding:0 0 6px;gap:8px;">
+            <div style="flex:1.4;"></div>
+            <div class="txt-xs bold txt-muted" style="flex:1;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Before</div>
+            <div class="txt-xs bold" style="flex:1;text-align:center;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);">After</div>
+          </div>
+          ${metricCompareRow('Observations/day',bStats.perDay,aStats.perDay,'',afterLogs.length?'higherBetter':null)}
+          ${metricCompareRow('Avg quantity',bStats.avgQty,aStats.avgQty,'',null)}
+          ${metricCompareRow('Quantity range',bStats.minQty+'–'+bStats.maxQty,aStats.minQty+'–'+aStats.maxQty,'',null)}
+          ${metricCompareRow('Avg units used',bStats.avgUnits,aStats.avgUnits,'',null)}
+          ${metricCompareRow('Qty per unit',bStats.qtyPerUnit,aStats.qtyPerUnit,'',null)}
+          ${metricCompareRow('Avg duration',bStats.avgDuration,aStats.avgDuration,' min',afterLogs.length?'lowerBetter':null)}
+          ${metricCompareRow('Avg wait time',bStats.avgWait,aStats.avgWait,' min',afterLogs.length?'lowerBetter':null)}
+        </div>
+      `:`<div style="text-align:center;padding:20px 10px;color:var(--gray-400);"><p class="txt-sm">No observations logged yet — start with "Before" entries during the current process, then switch to "After" once your trial starts.</p></div>`}
+
+      <div class="tabs mb2">
+        <button class="tab ${tab==='before'?'on':''}" onclick="setMetricTab('before')">Before (${beforeLogs.length})</button>
+        <button class="tab ${tab==='after'?'on':''}" onclick="setMetricTab('after')">After (${afterLogs.length})</button>
+      </div>
+      ${catLine?`<p class="txt-xs txt-muted mb2">${esc(catLine)}</p>`:''}
+
+      <div id="metric-log-list">
+        ${shownLogs.length===0?`<p class="txt-xs txt-muted mb2" style="text-align:center;padding:10px 0;">No "${tab}" observations logged yet.</p>`
+          :shownLogs.map(l=>metricLogRow(l,code)).join('')}
+      </div>
+
+      <button class="btn btn-gold btn-full mt2" onclick="showAddMetricLogModal('${esc(code)}')">+ Log Observation</button>
+    </div>
+  </div>`;
+}
+
+function metricLogRow(log,code){
+  const phaseBadge=log.phase==='after'
+    ?`<span style="background:var(--navy);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;">AFTER</span>`
+    :`<span style="background:var(--gray-200);color:var(--gray-600);font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;">BEFORE</span>`;
+  return`<div class="ai x" style="cursor:pointer;" onclick="showAddMetricLogModal('${esc(code)}','${esc(log.id)}')">
+    <div class="flex aic jb mb1">
+      <div class="flex aic g2">${phaseBadge}<span class="txt-sm bold">${esc(log.category||'—')}</span></div>
+      <span class="txt-xs txt-muted">${fmtShort(log.date)}</span>
+    </div>
+    <div class="flex g2" style="flex-wrap:wrap;font-size:12px;color:var(--gray-600);">
+      <span>${log.qty||0} qty</span><span>·</span>
+      <span>${log.units||0} unit${log.units===1?'':'s'}</span><span>·</span>
+      <span>${log.durationMin||0} min</span>
+      ${log.waitMin?`<span>·</span><span>${log.waitMin} min wait</span>`:''}
+      ${log.who?`<span>·</span><span>${esc(log.who)}</span>`:''}
+    </div>
+    ${log.notes?`<div class="mt1 txt-xs" style="color:var(--gray-600);">${esc(log.notes)}</div>`:''}
+  </div>`;
+}
+
+function setMetricTab(phase){
+  _mtTab=phase;
+  const ev=DB.getEvent(S.eventCode);
+  const el=document.getElementById('ci-metrics-section');
+  if(el&&ev)el.innerHTML=buildCIMetricsSectionHTML(S.eventCode,ev);
+}
+
+function showAddMetricLogModal(code,editId){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const logs=DB.getMetricLogs(code);
+  const editing=editId?logs.find(l=>l.id===editId):null;
+  _mtPhaseSel=editing?editing.phase:_mtTab;
+  _mtEditId=editing?editing.id:null;
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">${editing?'Edit':'Log'} Observation</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="submitMetricLog(event,'${esc(code)}')">
+        <div class="fg"><label class="lbl">Phase *</label>
+          <div class="tap-row">
+            ${['before','after'].map(p=>`<div class="tap-opt mt-phase-opt${_mtPhaseSel===p?' sel':''}" data-val="${p}" onclick="selectMetricPhase(this)">${p==='before'?'Before':'After'}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fg"><label class="lbl">Category</label>
+          <input class="ctrl" name="category" value="${editing?esc(editing.category||''):''}" placeholder="e.g. Thumbs, Order Type A..."></div>
+        <div class="fg"><label class="lbl">Date *</label>
+          <input class="ctrl" type="date" name="date" value="${editing?esc(editing.date||''):todayStr()}" required></div>
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Quantity *</label>
+            <input class="ctrl" type="number" min="1" name="qty" value="${editing?esc(editing.qty||''):''}" placeholder="e.g. 12" required></div>
+          <div class="fg"><label class="lbl">Units Used</label>
+            <input class="ctrl" type="number" min="0" step="1" name="units" value="${editing?esc(editing.units||''):''}" placeholder="e.g. 1"></div>
+        </div>
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Duration (min)</label>
+            <input class="ctrl" type="number" min="0" name="durationMin" value="${editing?esc(editing.durationMin||''):''}" placeholder="e.g. 8"></div>
+          <div class="fg"><label class="lbl">Wait / Blocked Time (min)</label>
+            <input class="ctrl" type="number" min="0" name="waitMin" value="${editing?esc(editing.waitMin||''):''}" placeholder="e.g. 0"></div>
+        </div>
+        <div class="fg"><label class="lbl">Who (optional)</label>
+          <input class="ctrl" name="who" value="${editing?esc(editing.who||''):''}" placeholder="Who was observed?"></div>
+        <div class="fg"><label class="lbl">Notes</label>
+          <textarea class="ctrl" name="notes" rows="2" placeholder="Anything worth flagging...">${editing?esc(editing.notes||''):''}</textarea></div>
+        <div class="flex g2 mt2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          ${editing?`<button type="button" class="btn btn-red btn-sm" onclick="doDeleteMetricLog('${esc(code)}','${esc(editing.id)}')">🗑️</button>`:''}
+          <button type="submit" class="btn btn-gold" style="flex:1">${editing?'Save Changes':'Log It'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+}
+function selectMetricPhase(el){
+  _mtPhaseSel=el.dataset.val;
+  document.querySelectorAll('.mt-phase-opt').forEach(b=>b.classList.toggle('sel',b.dataset.val===_mtPhaseSel));
+}
+function submitMetricLog(e,code){
+  e.preventDefault();
+  const data=Object.fromEntries(new FormData(e.target));
+  const log={
+    phase:_mtPhaseSel,
+    category:(data.category||'').trim(),
+    date:data.date,
+    qty:Number(data.qty)||0,
+    units:Number(data.units)||0,
+    durationMin:Number(data.durationMin)||0,
+    waitMin:Number(data.waitMin)||0,
+    who:(data.who||'').trim(),
+    notes:(data.notes||'').trim()
+  };
+  if(_mtEditId){DB.updateMetricLog(code,_mtEditId,log);toast('Observation updated!');}
+  else{DB.addMetricLog(code,log);toast('Observation logged!');}
+  _mtTab=_mtPhaseSel;
+  closeModal();
+  const ev=DB.getEvent(code);
+  const el=document.getElementById('ci-metrics-section');
+  if(el&&ev)el.innerHTML=buildCIMetricsSectionHTML(code,ev);
+}
+function doDeleteMetricLog(code,id){
+  if(!confirm('Delete this observation? This cannot be undone.'))return;
+  DB.deleteMetricLog(code,id);
+  closeModal();
+  toast('Observation deleted');
+  const ev=DB.getEvent(code);
+  const el=document.getElementById('ci-metrics-section');
+  if(el&&ev)el.innerHTML=buildCIMetricsSectionHTML(code,ev);
 }
 
 // ═══════════════════════════════════════════════════════════
