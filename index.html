@@ -407,6 +407,18 @@ textarea.ctrl-grow{resize:none;overflow:hidden;}
 const CFG = { pins: { Chase: '2610', Robert: '7744' } };
 const CATS = ['Safety','Quality','Cost','Delivery','People','5S'];
 const DRAFT_KEY = 'kz_draft';
+// Kitting Time Study (Project B) — part types + floor interview guide
+const PART_TYPES = ['Thumbs','Couplers','Panels','Footballs','Buckets','Other'];
+const KIT_QUESTIONS = [
+  'Walk me through one full kit, start to finish, exactly as it happens today.',
+  'When an order is small (2-3 pieces), does it still get its own pallet, or does it share with something else?',
+  'When an order is large (50-100+ pieces), does it ever run out of pallet space mid-kit? What happens then?',
+  'How do you know how many pallets to have staged before a shift starts?',
+  'Who decides when a pallet is "full enough" to move, versus waiting for more?',
+  'Where do partially-filled pallets sit, and for how long, before they move?',
+  "What's the forklift's role here — is it ever a bottleneck (waiting on a driver, one forklift serving multiple kitters)?",
+  'What happens today if kitting falls behind — does anyone besides the kitter pull parts?'
+];
 
 // ═══════════════════════════════════════════════════════════
 // DATABASE — localStorage demo
@@ -433,6 +445,22 @@ const DB = {
     return null;
   },
   deleteItem(c,id){this.saveItems(c,this.getItems(c).filter(x=>x.id!==id));},
+  // Kitting Time Study observation log (Project B) — before/after kit-pull entries
+  getKitLogs(c){return this._r('kz_kt_'+c)||[];},
+  saveKitLogs(c,logs){this._w('kz_kt_'+c,logs);},
+  addKitLog(c,log){
+    const logs=this.getKitLogs(c);
+    log.id='k'+Date.now()+Math.random().toString(36).slice(2,6);
+    log.createdAt=new Date().toISOString();
+    logs.push(log);this.saveKitLogs(c,logs);return log;
+  },
+  updateKitLog(c,id,patch){
+    const logs=this.getKitLogs(c);
+    const i=logs.findIndex(x=>x.id===id);
+    if(i>-1){logs[i]={...logs[i],...patch,updatedAt:new Date().toISOString()};this.saveKitLogs(c,logs);return logs[i];}
+    return null;
+  },
+  deleteKitLog(c,id){this.saveKitLogs(c,this.getKitLogs(c).filter(x=>x.id!==id));},
   getVotes(c){return this._r('kz_v_'+c)||{voters:[],scores:{}};},
   saveVotes(c,v){this._w('kz_v_'+c,v);},
   getVotes2(c){return this._r('kz_votes2_'+c)||[];},
@@ -465,6 +493,10 @@ let _modalStatus = 'Not Started'; // status in add/edit modal
 let _vtRating = null;     // current vote selection in pass-the-tablet voting
 let _escapeCount = 0;     // triple-tap emergency exit counter
 let _escapeTimer = null;
+let _kitTab = 'before';       // which phase's log list is shown in the Kitting Time Study section
+let _kitPhaseSel = 'before';  // phase selected in the add/edit kit log modal
+let _kitPartTypeSel = '';     // part type selected in the add/edit kit log modal
+let _kitEditId = null;        // id of kit log being edited, or null when adding
 
 // ═══════════════════════════════════════════════════════════
 // UTILS
@@ -1245,6 +1277,9 @@ function renderEvent(code,role){
 
       <!-- Opportunities & Voting (admin only) -->
       ${isAdmin?`<div id="opp-section">${buildOppSectionHTML(code,role,ev)}</div>`:''}
+
+      <!-- Kitting Time Study (admin only) -->
+      ${isAdmin?`<div id="kit-section">${buildKitStudySectionHTML(code,role,ev)}</div>`:''}
 
       <!-- Due this week -->
       <div id="p-due-week">${week.length>0?`
@@ -3272,6 +3307,259 @@ function doResetVoting(code){
     if(el)el.innerHTML=buildOppSectionHTML(code,'admin',DB.getEvent(code));
     else renderEvent(code,'admin');
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// KITTING TIME STUDY (Project B — table-pull trial before/after)
+// ═══════════════════════════════════════════════════════════
+function computeKitStats(logs){
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length*10)/10:0;
+  const sizes=logs.map(l=>Number(l.orderSize)||0).filter(v=>v>0);
+  const pallets=logs.map(l=>Number(l.pallets)||0).filter(v=>v>0);
+  const durations=logs.map(l=>Number(l.durationMin)||0).filter(v=>v>0);
+  const waits=logs.map(l=>Number(l.waitMin)).filter(v=>!isNaN(v)&&v>=0);
+  const totalPieces=sizes.reduce((a,b)=>a+b,0);
+  const totalPallets=pallets.reduce((a,b)=>a+b,0);
+  const days=new Set(logs.map(l=>l.date).filter(Boolean)).size;
+  return{
+    count:logs.length,
+    days,
+    kitsPerDay:days>0?Math.round(logs.length/days*10)/10:0,
+    avgOrderSize:avg(sizes),
+    minOrderSize:sizes.length?Math.min(...sizes):0,
+    maxOrderSize:sizes.length?Math.max(...sizes):0,
+    avgPallets:avg(pallets),
+    piecesPerPallet:totalPallets>0?Math.round(totalPieces/totalPallets*10)/10:0,
+    avgDuration:avg(durations),
+    avgWait:avg(waits)
+  };
+}
+
+// One before/after comparison row. directionality 'higherBetter'|'lowerBetter'|null
+// drives the green/red delta badge — null just shows both values with no judgment
+// (order size and pallet counts aren't "good" or "bad," they're sizing inputs).
+function kitCompareRow(label,beforeVal,afterVal,unit,directionality){
+  let deltaHtml='';
+  if(directionality&&typeof beforeVal==='number'&&typeof afterVal==='number'&&beforeVal>0){
+    const diff=afterVal-beforeVal;
+    if(diff!==0){
+      const improved=directionality==='higherBetter'?diff>0:diff<0;
+      const color=improved?'var(--green)':'var(--red)';
+      const pct=Math.round(Math.abs(diff)/beforeVal*100);
+      deltaHtml=`<span style="color:${color};font-size:11px;font-weight:800;margin-left:4px;">${diff>0?'▲':'▼'} ${pct}%</span>`;
+    }
+  }
+  return`
+    <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--gray-200);gap:8px;">
+      <div class="txt-sm bold" style="flex:1.4;min-width:0;">${esc(label)}</div>
+      <div class="txt-sm" style="flex:1;text-align:center;color:var(--gray-600);">${beforeVal}${unit}</div>
+      <div class="txt-sm bold" style="flex:1;text-align:center;color:var(--navy);">${afterVal}${unit}${deltaHtml}</div>
+    </div>`;
+}
+
+function buildKitStudySectionHTML(code,role,ev){
+  const allLogs=DB.getKitLogs(code);
+  const beforeLogs=allLogs.filter(l=>l.phase==='before');
+  const afterLogs=allLogs.filter(l=>l.phase==='after');
+  const bStats=computeKitStats(beforeLogs);
+  const aStats=computeKitStats(afterLogs);
+  const interview=ev.kittingInterview||[];
+  const answered=interview.filter(a=>(a||'').trim()).length;
+  const tab=_kitTab;
+  const shownLogs=(tab==='before'?beforeLogs:afterLogs).slice().sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
+  const partTypeLine=shownLogs.length?PART_TYPES.filter(pt=>shownLogs.some(l=>l.partType===pt))
+    .map(pt=>`${pt}: ${shownLogs.filter(l=>l.partType===pt).length}`).join(' · '):'';
+
+  return`<div class="card mb3">
+    <div class="card-body">
+      <div class="sec-hdr mb2">
+        <span class="sec-title">📦 Kitting Time Study</span>
+        <button class="btn btn-outline btn-sm" style="font-size:12px;min-height:32px;padding:5px 11px;" onclick="showKitInterviewModal('${esc(code)}')">📋 Guide (${answered}/${KIT_QUESTIONS.length})</button>
+      </div>
+      <p class="txt-xs txt-muted mb3">Log kit observations before and after the table-pull trial — same fields each time — to compare throughput, pallet usage, and cycle time.</p>
+
+      ${(beforeLogs.length>0||afterLogs.length>0)?`
+        <div style="margin-bottom:14px;">
+          <div style="display:flex;padding:0 0 6px;gap:8px;">
+            <div style="flex:1.4;"></div>
+            <div class="txt-xs bold txt-muted" style="flex:1;text-align:center;text-transform:uppercase;letter-spacing:.5px;">Before</div>
+            <div class="txt-xs bold" style="flex:1;text-align:center;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);">After</div>
+          </div>
+          ${kitCompareRow('Kits/day (logged)',bStats.kitsPerDay,aStats.kitsPerDay,'',afterLogs.length?'higherBetter':null)}
+          ${kitCompareRow('Avg order size',bStats.avgOrderSize,aStats.avgOrderSize,' pcs',null)}
+          ${kitCompareRow('Order size range',bStats.minOrderSize+'–'+bStats.maxOrderSize,aStats.minOrderSize+'–'+aStats.maxOrderSize,' pcs',null)}
+          ${kitCompareRow('Avg pallets/kit',bStats.avgPallets,aStats.avgPallets,'',null)}
+          ${kitCompareRow('Pieces/pallet',bStats.piecesPerPallet,aStats.piecesPerPallet,'',null)}
+          ${kitCompareRow('Avg kit duration',bStats.avgDuration,aStats.avgDuration,' min',afterLogs.length?'lowerBetter':null)}
+          ${kitCompareRow('Avg wait time',bStats.avgWait,aStats.avgWait,' min',afterLogs.length?'lowerBetter':null)}
+        </div>
+      `:`<div style="text-align:center;padding:20px 10px;color:var(--gray-400);"><p class="txt-sm">No observations logged yet — start with "Before" entries during the current process, then switch to "After" once the table-pull trial starts.</p></div>`}
+
+      <div class="tabs mb2">
+        <button class="tab ${tab==='before'?'on':''}" onclick="setKitTab('before')">Before (${beforeLogs.length})</button>
+        <button class="tab ${tab==='after'?'on':''}" onclick="setKitTab('after')">After (${afterLogs.length})</button>
+      </div>
+      ${partTypeLine?`<p class="txt-xs txt-muted mb2">${esc(partTypeLine)}</p>`:''}
+
+      <div id="kit-log-list">
+        ${shownLogs.length===0?`<p class="txt-xs txt-muted mb2" style="text-align:center;padding:10px 0;">No "${tab}" observations logged yet.</p>`
+          :shownLogs.map(l=>kitLogRow(l,code,role)).join('')}
+      </div>
+
+      <button class="btn btn-gold btn-full mt2" onclick="showAddKitLogModal('${esc(code)}','${role}')">+ Log Kit Observation</button>
+    </div>
+  </div>`;
+}
+
+function kitLogRow(log,code,role){
+  const phaseBadge=log.phase==='after'
+    ?`<span style="background:var(--navy);color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;">AFTER</span>`
+    :`<span style="background:var(--gray-200);color:var(--gray-600);font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;">BEFORE</span>`;
+  return`<div class="ai x" style="cursor:pointer;" onclick="showAddKitLogModal('${esc(code)}','${role}','${esc(log.id)}')">
+    <div class="flex aic jb mb1">
+      <div class="flex aic g2">${phaseBadge}<span class="txt-sm bold">${esc(log.partType||'—')}</span></div>
+      <span class="txt-xs txt-muted">${fmtShort(log.date)}</span>
+    </div>
+    <div class="flex g2" style="flex-wrap:wrap;font-size:12px;color:var(--gray-600);">
+      <span>${log.orderSize||0} pcs</span><span>·</span>
+      <span>${log.pallets||0} pallet${log.pallets===1?'':'s'}</span><span>·</span>
+      <span>${log.durationMin||0} min</span>
+      ${log.waitMin?`<span>·</span><span>${log.waitMin} min wait</span>`:''}
+      ${log.kitter?`<span>·</span><span>${esc(log.kitter)}</span>`:''}
+    </div>
+    ${log.notes?`<div class="mt1 txt-xs" style="color:var(--gray-600);">${esc(log.notes)}</div>`:''}
+  </div>`;
+}
+
+function setKitTab(phase){
+  _kitTab=phase;
+  const ev=DB.getEvent(S.eventCode);
+  const el=document.getElementById('kit-section');
+  if(el&&ev)el.innerHTML=buildKitStudySectionHTML(S.eventCode,'admin',ev);
+}
+
+function showAddKitLogModal(code,role,editId){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const logs=DB.getKitLogs(code);
+  const editing=editId?logs.find(l=>l.id===editId):null;
+  _kitPhaseSel=editing?editing.phase:_kitTab;
+  _kitPartTypeSel=editing?(editing.partType||''):'';
+  _kitEditId=editing?editing.id:null;
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">${editing?'Edit':'Log'} Kit Observation</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <form onsubmit="submitKitLog(event,'${esc(code)}')">
+        <div class="fg"><label class="lbl">Phase *</label>
+          <div class="tap-row">
+            ${['before','after'].map(p=>`<div class="tap-opt kit-phase-opt${_kitPhaseSel===p?' sel':''}" data-val="${p}" onclick="selectKitPhase(this)">${p==='before'?'Before':'After'}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fg"><label class="lbl">Part Type *</label>
+          <div class="owner-chips">
+            ${PART_TYPES.map(pt=>`<div class="owner-chip kit-parttype-opt${_kitPartTypeSel===pt?' sel':''}" data-val="${pt}" onclick="selectKitPartType(this)">${pt}</div>`).join('')}
+          </div>
+          <div id="kitPartTypeErr" class="val-err">Please select a part type</div>
+        </div>
+        <div class="fg"><label class="lbl">Date *</label>
+          <input class="ctrl" type="date" name="date" value="${editing?esc(editing.date||''):todayStr()}" required></div>
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Order Size (pcs) *</label>
+            <input class="ctrl" type="number" min="1" name="orderSize" value="${editing?esc(editing.orderSize||''):''}" placeholder="e.g. 12" required></div>
+          <div class="fg"><label class="lbl">Pallets Used</label>
+            <input class="ctrl" type="number" min="0" step="1" name="pallets" value="${editing?esc(editing.pallets||''):''}" placeholder="e.g. 1"></div>
+        </div>
+        <div class="grid2">
+          <div class="fg"><label class="lbl">Kit Duration (min)</label>
+            <input class="ctrl" type="number" min="0" name="durationMin" value="${editing?esc(editing.durationMin||''):''}" placeholder="e.g. 8"></div>
+          <div class="fg"><label class="lbl">Wait / Blocked Time (min)</label>
+            <input class="ctrl" type="number" min="0" name="waitMin" value="${editing?esc(editing.waitMin||''):''}" placeholder="e.g. 0"></div>
+        </div>
+        <div class="fg"><label class="lbl">Kitter (optional)</label>
+          <input class="ctrl" name="kitter" value="${editing?esc(editing.kitter||''):''}" placeholder="Who was kitting?"></div>
+        <div class="fg"><label class="lbl">Notes</label>
+          <textarea class="ctrl" name="notes" rows="2" placeholder="Anything worth flagging — blocked pallet, missing parts, congestion...">${editing?esc(editing.notes||''):''}</textarea></div>
+        <div class="flex g2 mt2">
+          <button type="button" class="btn btn-outline" style="flex:1" onclick="closeModal()">Cancel</button>
+          ${editing?`<button type="button" class="btn btn-red btn-sm" onclick="doDeleteKitLog('${esc(code)}','${esc(editing.id)}')">🗑️</button>`:''}
+          <button type="submit" class="btn btn-gold" style="flex:1">${editing?'Save Changes':'Log It'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+}
+
+function selectKitPhase(el){
+  _kitPhaseSel=el.dataset.val;
+  document.querySelectorAll('.kit-phase-opt').forEach(b=>b.classList.toggle('sel',b.dataset.val===_kitPhaseSel));
+}
+function selectKitPartType(el){
+  _kitPartTypeSel=el.dataset.val;
+  document.querySelectorAll('.kit-parttype-opt').forEach(c=>c.classList.toggle('sel',c.dataset.val===_kitPartTypeSel));
+  const err=document.getElementById('kitPartTypeErr');
+  if(err)err.classList.remove('show');
+}
+
+function submitKitLog(e,code){
+  e.preventDefault();
+  const data=Object.fromEntries(new FormData(e.target));
+  if(!_kitPartTypeSel){const err=document.getElementById('kitPartTypeErr');if(err)err.classList.add('show');return;}
+  const log={
+    phase:_kitPhaseSel,
+    partType:_kitPartTypeSel,
+    date:data.date,
+    orderSize:Number(data.orderSize)||0,
+    pallets:Number(data.pallets)||0,
+    durationMin:Number(data.durationMin)||0,
+    waitMin:Number(data.waitMin)||0,
+    kitter:(data.kitter||'').trim(),
+    notes:(data.notes||'').trim()
+  };
+  if(_kitEditId){DB.updateKitLog(code,_kitEditId,log);toast('Kit observation updated!');}
+  else{DB.addKitLog(code,log);toast('Kit observation logged!');}
+  _kitTab=_kitPhaseSel;
+  closeModal();
+  const ev=DB.getEvent(code);
+  const el=document.getElementById('kit-section');
+  if(el&&ev)el.innerHTML=buildKitStudySectionHTML(code,'admin',ev);
+}
+
+function doDeleteKitLog(code,id){
+  if(!confirm('Delete this kit observation? This cannot be undone.'))return;
+  DB.deleteKitLog(code,id);
+  closeModal();
+  toast('Observation deleted');
+  const ev=DB.getEvent(code);
+  const el=document.getElementById('kit-section');
+  if(el&&ev)el.innerHTML=buildKitStudySectionHTML(code,'admin',ev);
+}
+
+function showKitInterviewModal(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const answers=ev.kittingInterview||[];
+  modal(`
+    <div class="modal-hdr"><span class="modal-title">Kitting Interview Guide</span><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <p class="txt-xs txt-muted mb3">Use these during floor observation of the supervisor/lead. Answers save per event.</p>
+      ${KIT_QUESTIONS.map((q,i)=>`
+        <div class="fg">
+          <label class="lbl">${i+1}. ${esc(q)}</label>
+          <textarea class="ctrl" id="kitq_${i}" rows="2" placeholder="Notes...">${esc(answers[i]||'')}</textarea>
+        </div>
+      `).join('')}
+      <button class="btn btn-gold btn-full mt2" onclick="saveKitInterview('${esc(code)}')">💾 Save Answers</button>
+    </div>
+  `);
+}
+
+function saveKitInterview(code){
+  const ev=DB.getEvent(code);if(!ev)return;
+  const answers=KIT_QUESTIONS.map((_,i)=>document.getElementById('kitq_'+i)?.value||'');
+  ev.kittingInterview=answers;
+  DB.saveEvent(ev);
+  closeModal();
+  toast('Interview answers saved!');
+  const el=document.getElementById('kit-section');
+  if(el)el.innerHTML=buildKitStudySectionHTML(code,'admin',ev);
 }
 
 // ═══════════════════════════════════════════════════════════
