@@ -658,6 +658,7 @@ function renderLanding(){
       <div style="margin-top:8px;">
         <button class="btn btn-gold" style="min-width:200px;font-size:17px;padding:16px 32px;" onclick="renderPIN()">🔐 Admin Login</button>
       </div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:16px;" onclick="checkForUpdate()">🔄 Check for Update</button>
       <p style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.3);">TAG Manufacturing • Kaizen Tracker</p>
     </div>
   `);
@@ -732,7 +733,10 @@ function renderDash(){
       <div class="hdr-logo">KZ</div>
       <div class="hdr-text"><h1>Kaizen Tracker</h1><p>Admin · ${esc(S.user?.name)}</p></div>
       <div class="hdr-brand"><div class="hdr-brand-main">Continuous Improvement</div><div class="hdr-brand-sub">TAG Manufacturing</div></div>
-      <div class="hdr-acts"><button class="btn-ico" onclick="logout()" title="Logout">🔓</button></div>
+      <div class="hdr-acts">
+        <button class="btn-ico" onclick="checkForUpdate()" title="Check for Update">🔄</button>
+        <button class="btn-ico" onclick="logout()" title="Logout">🔓</button>
+      </div>
     </div></div>
     <div class="content">
       <div class="flex aic jb mb3 mt2">
@@ -3937,6 +3941,29 @@ function seedKittingCI(){
   DB.saveEvent(ev);
 }
 
+// Migration-style seed — adds Chase's real action items to the Kitting CI
+// Project even on a tablet where that project already exists. Runs every
+// load, but checks each item's description first so nothing duplicates.
+function seedKittingActionItems(){
+  const CODE='KITTB1';
+  const ev=DB.getEvent(CODE);if(!ev)return;
+  const wantParticipants=['Jim','Michael Howard','Chase Singleton'];
+  ev.participants=ev.participants||[];
+  let changed=false;
+  wantParticipants.forEach(p=>{if(!ev.participants.includes(p)){ev.participants.push(p);changed=true;}});
+  if(changed)DB.saveEvent(ev);
+
+  const items=DB.getItems(CODE);
+  const already=desc=>items.some(i=>i.description===desc);
+  const toAdd=[
+    {description:'Thumbs & Couplers Inventory',owner:'Jim',dueDate:'2026-09-07',priority:'High',categories:[],status:'Not Started',comment:'Complete inventory count from burn table.'},
+    {description:'Yard Pallets – Sort & Clear',owner:'Jason',dueDate:'2026-09-14',priority:'Medium',categories:[],status:'Not Started',comment:'Identify random parts on outside pallets and catalog, consolidate to free pallets, and scrap all unneeded yard parts.'},
+    {description:'Capital Expenditure Analysis',owner:'Michael Howard',dueDate:'2026-09-30',priority:'Medium',categories:[],status:'Not Started',comment:'Analyze power units needed, labor costs for production integration, and all related CAPEX factors.'},
+    {description:'A3 Completion',owner:'Chase Singleton',dueDate:'',priority:'Medium',categories:[],status:'Not Started',comment:'Due date not yet confirmed with Chase — set a target date.'}
+  ];
+  toAdd.forEach(item=>{if(!already(item.description))DB.addItem(CODE,item);});
+}
+
 // ═══════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ═══════════════════════════════════════════════════════════
@@ -3963,11 +3990,32 @@ if('serviceWorker' in navigator){
   });
 }
 
+// Manual "check for update" button — the automatic check above only fires
+// once per page load, which isn't very visible/trustworthy on a tablet that
+// stays open for days. This forces an immediate check on demand. If a new
+// version is found, the controllerchange listener above reloads the page
+// automatically — this function doesn't need to do that itself.
+function checkForUpdate(){
+  if(!('serviceWorker' in navigator)){toast("Updates aren't supported in this browser.");return;}
+  toast('Checking for updates…');
+  navigator.serviceWorker.getRegistration().then(reg=>{
+    if(!reg){toast('No update service found — fully close and reopen the app.');return;}
+    reg.update().then(()=>{
+      setTimeout(()=>{
+        // If an update was found, the page has already reloaded by now via
+        // the controllerchange listener. Still here means nothing was new.
+        toast("You're already on the latest version!");
+      },2500);
+    }).catch(()=>toast('Update check failed — check your connection.'));
+  });
+}
+
 // ═══════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════
 seedDemo();
 seedKittingCI();
+seedKittingActionItems();
 init();
 </script>
 </body>
