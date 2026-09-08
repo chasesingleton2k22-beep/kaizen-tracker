@@ -734,6 +734,7 @@ function renderDash(){
       <div class="hdr-text"><h1>Kaizen Tracker</h1><p>Admin · ${esc(S.user?.name)}</p></div>
       <div class="hdr-brand"><div class="hdr-brand-main">Continuous Improvement</div><div class="hdr-brand-sub">TAG Manufacturing</div></div>
       <div class="hdr-acts">
+        <button class="btn-ico" onclick="exportAllData()" title="Export All Data">⬇️</button>
         <button class="btn-ico" onclick="checkForUpdate()" title="Check for Update">🔄</button>
         <button class="btn-ico" onclick="logout()" title="Logout">🔓</button>
       </div>
@@ -3988,6 +3989,40 @@ if('serviceWorker' in navigator){
       window.location.reload();
     }
   });
+}
+
+// Export every event's full data (event record, action items, votes, metric
+// logs) as one downloadable JSON file. This is the only way real data gets
+// off a tablet — the PWA's localStorage is sandboxed inside Chrome and isn't
+// visible over a plain USB connection, but a browser download does land in
+// the device's public Downloads folder, which IS visible over USB.
+function exportAllData(){
+  try{
+    const events=DB.getEvents();
+    const data={exportedAt:new Date().toISOString(),events:{}};
+    Object.keys(events).forEach(code=>{
+      data.events[code]={
+        event:events[code],
+        items:DB.getItems(code),
+        votes:DB.getVotes2(code),
+        metricLogs:DB.getMetricLogs(code)
+      };
+    });
+    const json=JSON.stringify(data,null,2);
+    const blob=new Blob([json],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const stamp=new Date().toISOString().slice(0,10);
+    a.href=url;
+    a.download=`kaizen-tracker-export-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast('Export saved to your Downloads folder!');
+  }catch(e){
+    toast('Export failed: '+e.message);
+  }
 }
 
 // Manual "check for update" button — the automatic check above only fires
