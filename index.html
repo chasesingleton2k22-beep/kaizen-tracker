@@ -3965,6 +3965,33 @@ function seedKittingActionItems(){
   toAdd.forEach(item=>{if(!already(item.description))DB.addItem(CODE,item);});
 }
 
+// Seed real Bucket Ear Storage CI Project from Jim Fulgham's 9/9/26 email
+// (subject "Bucket Ear Storage", fwd'd to Robert + Chase). This documents an
+// already-implemented reorganization, not an active before/after trial —
+// no Trial Hypothesis or metrics are seeded since none exist in the source.
+function seedBucketEarCI(){
+  const CODE='BKTEAR1';
+  if(DB.getEvent(CODE))return;
+  const ev={
+    code:CODE,type:'ci_project',
+    name:'Bucket Ear Storage Reorganization',
+    plant:'Plant 2 – Burn Bay / Bucket Ear Storage',
+    date:'2026-09-09',
+    assignedBy:'Jim Fulgham',
+    facilitator:'Chase Singleton',
+    background:'Jim Fulgham\'s team reorganized the Bucket Ear storage area to make it easier for the Ear Installation team to find parts and keep production moving efficiently. Burn Bay loads Ears daily to keep shelves stocked in the correct locations for production orders. This project is intended to help both the Burn Bay team and the Bucket Ear Installation team locate parts faster and eliminate confusion when looking for Ears.',
+    currentState:'All Ears are organized by frame size first, then part number second. Each stock rack skid is labeled with its frame size (e.g., 05) and the part-number range stored there (e.g., 3325–9741) — the numbers printed on the skid represent some of the larger-use part numbers within that range; if a specific part number isn\'t labeled, use the top-to-bottom range shown.\n\nA dedicated Return Skid holds Ears sent back from Ear Installation (wrong part picked, mismarked, or any other reason parts need to return to stock) — parts must go back to the Return Skid specifically, with no weld tacks or bushings welded on, in the same condition they were in when pulled off the stock rack.\n\nA Miscellaneous Skid holds oddball part numbers not currently in the regular stock rotation.\n\nA top-view layout is posted on the cleaning board showing where everything is located. This arrangement stays in place until further notice.',
+    issues:[
+      {id:'is1',text:'Returned parts have repeatedly been placed wherever there was room instead of back on the designated Return Skid — called out explicitly as a recurring problem in the reorganization announcement.'}
+    ],
+    openQuestions:[],
+    interview:[],
+    participants:['Jim Fulgham','Jeremy Brooks','Alex Smith','Jacob Shannon','Ben Stone','James Sallie','Tyler Farmer','Felipe Morales','Robert Crist','Chase Singleton'],
+    status:'active',createdAt:new Date().toISOString(),createdBy:'Chase'
+  };
+  DB.saveEvent(ev);
+}
+
 // ═══════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ═══════════════════════════════════════════════════════════
@@ -4051,6 +4078,7 @@ function checkForUpdate(){
 seedDemo();
 seedKittingCI();
 seedKittingActionItems();
+seedBucketEarCI();
 init();
 </script>
 </body>

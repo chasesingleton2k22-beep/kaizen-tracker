@@ -5,7 +5,7 @@
 // • Falls back to cache when offline (full PWA support).
 // • skipWaiting + clients.claim = new SW activates immediately.
 // • Bump CACHE name whenever you need to force a hard reset.
-const CACHE = 'kz-v16';
+const CACHE = 'kz-v17';
 const ASSETS = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 // ── Install: pre-cache assets from network ──────────────────
