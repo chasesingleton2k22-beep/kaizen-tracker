@@ -4055,6 +4055,18 @@ function seedBurnBayVSM(){
   toAdd.forEach(item=>{if(!already(item.description))DB.addItem(CODE,item);});
 }
 
+// Non-destructive migration — fills in the full Downtime Summary/Pareto/
+// Mechanical Failure Breakdown/Analysis detail from the OFFICIAL workbook,
+// verbatim, into Meeting Notes. Only runs if notes is still empty, so it
+// never overwrites anything Chase has already typed in the app himself.
+function seedBurnBayVSMNotes(){
+  const CODE='P2BURN1';
+  const ev=DB.getEvent(CODE);if(!ev)return;
+  if(ev.notes)return;
+  ev.notes='ANALYSIS\nPlant 2 Burn Bay is performing well but has room to push uptime toward the 85%+ world-class mark, which would directly strengthen downstream kitting and production. The biggest gains come not from any single fix but from adding more structure and organization across how the bay runs day to day.\n\nBuilding depth in the team is a key opportunity.\nEquipment reliability is the largest single opportunity. A small number of high-impact events drive most of the downtime in this window, so the focus is on responding faster and shortening turnaround when a machine does go down.\n\nSeveral strong practices — consistent piercing, easier marking marking (blowing up program) and lens cleaning — are already known to work here. Reinforcing and standardizing them across every shift is a straightforward path to steadier, more predictable output.\n\nDOWNTIME SUMMARY — Date Range: 11/18/2025 to 03/12/2026\nDescription                  # Occ   Total (min)\nMechanical Failure              12        10,941\nOffloading                      16           831\nNo Operator                      1           660\nProgramming/Scheduling          12           263\nSitting Idle                     6           176\nTripped Sensor                   4           163\nCollision Alarm                  3           163\nLoading Table                    6           146\nQuality                          6           146\nFinished Cut Idle                4           104\nMaterial Wait/Staging            4            77\nCleaning Laser                   1            35\nCentering Lense                  1            27\nNozzel Interference               1            18\nLasers Bumped                    1             7\nTOTAL                           78        13,757\n\nOVERALL PARETO (all downtime, ranked)\n1. Mechanical Failure — 10,941 min — 79.5% (cum. 79.5%)\n2. Offloading — 831 min — 6.0% (cum. 85.6%)\n3. No Operator — 660 min — 4.8% (cum. 90.4%)\n4. Programming/Scheduling — 263 min — 1.9% (cum. 92.3%)\n5. Sitting Idle — 176 min — 1.3% (cum. 93.6%)\n6. Tripped Sensor — 163 min — 1.2% (cum. 94.7%)\n7. Collision Alarm — 163 min — 1.2% (cum. 95.9%)\n8. Loading Table — 146 min — 1.1% (cum. 97.0%)\n9. Quality — 146 min — 1.1% (cum. 98.1%)\n10. Finished Cut Idle — 104 min — 0.8% (cum. 98.8%)\n11. Material Wait/Staging — 77 min — 0.6% (cum. 99.4%)\n12. Cleaning Laser — 35 min — 0.3% (cum. 99.6%)\n13. Centering Lense — 27 min — 0.2% (cum. 99.8%)\n14. Nozzel Interference — 18 min — 0.1% (cum. 99.9%)\n15. Lasers Bumped — 7 min — 0.1% (cum. 100.0%)\n\nNON-MECHANICAL FAILURE PARETO (excludes Mechanical Failure — 66 events, 2,816 min)\n1. Offloading — 831 min — 29.5% (cum. 29.5%)\n2. No Operator — 660 min — 23.4% (cum. 52.9%)\n3. Programming/Scheduling — 263 min — 9.3% (cum. 62.3%)\n4. Sitting Idle — 176 min — 6.3% (cum. 68.5%)\n5. Tripped Sensor — 163 min — 5.8% (cum. 74.3%)\n6. Collision Alarm — 163 min — 5.8% (cum. 80.1%)\n7. Loading Table — 146 min — 5.2% (cum. 85.3%)\n8. Quality — 146 min — 5.2% (cum. 90.5%)\n9. Finished Cut Idle — 104 min — 3.7% (cum. 94.2%)\n10. Material Wait/Staging — 77 min — 2.7% (cum. 96.9%)\n11. Cleaning Laser — 35 min — 1.2% (cum. 98.2%)\n12. Centering Lense — 27 min — 1.0% (cum. 99.1%)\n13. Nozzel Interference — 18 min — 0.6% (cum. 99.8%)\n14. Lasers Bumped — 7 min — 0.2% (cum. 100.0%)\n\nMECHANICAL FAILURE BREAKDOWN — 10,941 min = 79.5% of 13,757 total downtime, or 23.3% of 46,953 available minutes\n\nIndividual events:\nL.9 — Fire/Track Fire — 1,440 min (same event)\nR.2 — Broken Track — 410 min\nR.3 — Fried Power Supply — 900 min\nR.2 — Broken Track — 435 min\nL.9 — Bad Photo Sensor — 840 min\nL.9 — Photo Sensor — 450 min\nR.2 — Display Error — 690 min\nL.9 — Fire/Track Fire — 2,730 min (same event)\nR.3 — Photo Sensor — 540 min\nL.9 — Fried Circuit Board — 1,440 min\nL.9 — External Mirrors — 998 min\nR.2 — Photo Sensor Alarm — 68 min (alarm only)\nTOTAL — 10,941 min\n\nGrouped by issue type:\n1. Fire/Track Fire — 2 events — 4,170 min — 38.1% (cum. 38.1%)\n2. Photo Sensor — 4 events — 1,898 min — 17.3% (cum. 55.5%)\n3. Fried Circuit Board — 1 event — 1,440 min — 13.2% (cum. 68.6%)\n4. External Mirrors — 1 event — 998 min — 9.1% (cum. 77.7%)\n5. Fried Power Supply — 1 event — 900 min — 8.2% (cum. 86.0%)\n6. Broken Track — 2 events — 845 min — 7.7% (cum. 93.7%)\n7. Display Error — 1 event — 690 min — 6.3% (cum. 100.0%)';
+  DB.saveEvent(ev);
+}
+
 // ═══════════════════════════════════════════════════════════
 // SERVICE WORKER
 // ═══════════════════════════════════════════════════════════
@@ -4143,6 +4155,7 @@ seedKittingCI();
 seedKittingActionItems();
 seedBucketEarCI();
 seedBurnBayVSM();
+seedBurnBayVSMNotes();
 init();
 </script>
 </body>
