@@ -506,6 +506,28 @@ function color(item){
   return 'x';
 }
 function fmtDate(d){if(!d)return '—';const x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+
+// Quick-pick buttons next to any due-date <input type="date"> — jumps the
+// value forward without touching the native calendar widget at all, since
+// that widget is finicky/hard to navigate month-to-month on some mobile
+// browsers (nothing in this app restricts which dates are selectable —
+// this is purely a faster way to set one further out).
+function dueDateQuickPicksHTML(inputId){
+  return `<div class="flex g2 mt1" style="flex-wrap:wrap;">
+    <button type="button" class="chip" style="font-size:11px;padding:4px 10px;" onclick="bumpDueDate('${inputId}',1,'week')">+1 wk</button>
+    <button type="button" class="chip" style="font-size:11px;padding:4px 10px;" onclick="bumpDueDate('${inputId}',2,'week')">+2 wk</button>
+    <button type="button" class="chip" style="font-size:11px;padding:4px 10px;" onclick="bumpDueDate('${inputId}',1,'month')">+1 mo</button>
+    <button type="button" class="chip" style="font-size:11px;padding:4px 10px;" onclick="bumpDueDate('${inputId}',3,'month')">+3 mo</button>
+  </div>`;
+}
+function bumpDueDate(inputId,amount,unit){
+  const el=document.getElementById(inputId);if(!el)return;
+  const base=el.value?new Date(el.value+'T00:00:00'):new Date();
+  if(unit==='week')base.setDate(base.getDate()+amount*7);
+  else if(unit==='month')base.setMonth(base.getMonth()+amount);
+  const y=base.getFullYear(),m=String(base.getMonth()+1).padStart(2,'0'),d=String(base.getDate()).padStart(2,'0');
+  el.value=`${y}-${m}-${d}`;
+}
 function fmtShort(d){if(!d)return '—';const x=new Date(d+'T00:00:00');return x.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function toast(msg,ms=2500){
@@ -1454,7 +1476,9 @@ function showAddModal(code,role){
             :`<input class="ctrl" id="modal_owner_text" placeholder="Who is responsible?">`}
         </div>
         <div class="fg"><label class="lbl">Due Date</label>
-          <input class="ctrl" type="date" name="dueDate"></div>
+          <input class="ctrl" type="date" name="dueDate" id="dueDateInput">
+          ${dueDateQuickPicksHTML('dueDateInput')}
+        </div>
         <div class="fg"><label class="lbl">Priority</label>
           <div class="tap-row">
             ${['Low','Medium','High'].map(p=>`<div class="tap-opt modal-priority-opt${p==='Medium'?' sel':''}" data-val="${p}" onclick="selectModalPriority(this)">${p}</div>`).join('')}
@@ -1665,7 +1689,9 @@ function showEditModal(code,id,role){
             :`<input class="ctrl" id="modal_owner_text" value="${esc(item.owner||'')}" placeholder="Who is responsible?">`}
         </div>
         <div class="fg"><label class="lbl">Due Date</label>
-          <input class="ctrl" type="date" name="dueDate" value="${esc(item.dueDate||'')}"></div>
+          <input class="ctrl" type="date" name="dueDate" id="dueDateInput" value="${esc(item.dueDate||'')}">
+          ${dueDateQuickPicksHTML('dueDateInput')}
+        </div>
         <div class="fg"><label class="lbl">Priority</label>
           <div class="tap-row">
             ${['Low','Medium','High'].map(p=>`<div class="tap-opt modal-priority-opt${(item.priority||'Medium')===p?' sel':''}" data-val="${p}" onclick="selectModalPriority(this)">${p}</div>`).join('')}
@@ -2935,6 +2961,7 @@ function buildOppSectionHTML(code,role,ev){
           <div class="fg">
             <label class="lbl">Due Date *</label>
             <input class="ctrl" type="date" id="apdate_${op.id}">
+            ${dueDateQuickPicksHTML('apdate_'+op.id)}
             <div id="aperr_date_${op.id}" class="val-err">Due date is required</div>
           </div>
           <div class="fg">
